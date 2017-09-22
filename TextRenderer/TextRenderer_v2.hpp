@@ -5,11 +5,11 @@
 #include <string>
 #include <map>
 
-class TextRenderer_v1
+class TextRenderer_v2
 {
 public:
-    TextRenderer_v1(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels);
-    ~TextRenderer_v1();
+    TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels);
+    ~TextRenderer_v2();
 
     void onVievportResize(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels);
 
@@ -37,6 +37,7 @@ private:
         GLuint characterTextureID;
         GLfloat glyph_bitmap_rows;
         GLfloat glyph_bitmap_width;
+        unsigned char*  glyph_bitmap_buffer = nullptr;
         GLfloat glyph_bitmap_left;
         GLfloat glyph_bitmap_top;
         GLfloat glyph_advance_x;

@@ -1,4 +1,4 @@
-#include "TextRenderer_v1.hpp"
+#include "TextRenderer_v2.hpp"
 
 #include <iostream>
 
@@ -9,13 +9,15 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <vector>
+
 using namespace std;
 
 static GLuint shader_program;
 
 static GLuint prepareVBO(const GLfloat * data, GLsizeiptr size);
-static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
-static void drawGlyphToConsole(FT_Face &face);
+GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
+void drawGlyphToConsole(FT_Face &face);
 
 static const GLchar* vertex_shader_source =
         "#version 100                               \n"
@@ -48,7 +50,8 @@ static const GLchar* fragment_shader_source =
 
 
 
-TextRenderer_v1::TextRenderer_v1(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels){
+TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels){
+
     current_viewport_width_in_pixels = viewport_width_in_pixels;
     current_viewport_height_in_pixels = viewport_height_in_pixels;
 
@@ -71,11 +74,11 @@ TextRenderer_v1::TextRenderer_v1(GLfloat viewport_width_in_pixels, GLfloat viewp
     vbo = prepareVBO(verticles_table, sizeof(verticles_table));
 }
 
-TextRenderer_v1::~TextRenderer_v1(){
+TextRenderer_v2::~TextRenderer_v2(){
     glDeleteBuffers(1, &vbo);
 }
 
-void TextRenderer_v1::RenderText(std::string text,  GLfloat x, GLfloat y){
+void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y){
 
     GLfloat pen_x = x;
     GLfloat pen_y = y;
@@ -135,7 +138,7 @@ void TextRenderer_v1::RenderText(std::string text,  GLfloat x, GLfloat y){
     glUseProgram(0);
 }
 
-void TextRenderer_v1::onVievportResize(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels){
+void TextRenderer_v2::onVievportResize(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels){
 
     current_viewport_width_in_pixels = viewport_width_in_pixels;
     current_viewport_height_in_pixels = viewport_height_in_pixels;
@@ -148,7 +151,7 @@ void TextRenderer_v1::onVievportResize(GLfloat viewport_width_in_pixels, GLfloat
     glUseProgram(0);
 }
 
-void TextRenderer_v1::Load(std::string font, GLuint fontSize){
+void TextRenderer_v2::Load(std::string font, GLuint fontSize){
 
 
     FT_Library ft;
@@ -169,6 +172,10 @@ void TextRenderer_v1::Load(std::string font, GLuint fontSize){
 
     GLuint TextureID;
 
+    int max_rows = 0;
+    int max_width = 0;
+    int total_width = 0;
+
     for(char c = ' '; c <= 'z'; c++)
     {
 
@@ -180,14 +187,6 @@ void TextRenderer_v1::Load(std::string font, GLuint fontSize){
 
         drawGlyphToConsole(face);
 
-        glGenTextures(1, &TextureID);
-        glBindTexture(GL_TEXTURE_2D, TextureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, face->glyph->bitmap.width, face->glyph->bitmap.rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glBindTexture (GL_TEXTURE_2D, 0);
 
         // Destroy FreeType once we're finished
 
@@ -197,15 +196,89 @@ void TextRenderer_v1::Load(std::string font, GLuint fontSize){
         cout << "face->glyph->bitmap.width = " << face->glyph->bitmap.width << endl;
         cout << "face->glyph->bitmap.rows = " << face->glyph->bitmap.rows << endl;
 
-        charData_tmp.characterTextureID = TextureID;
+        if(face->glyph->bitmap.rows > max_rows){
+            max_rows = face->glyph->bitmap.rows;
+        }
+        if(face->glyph->bitmap.width > max_width){
+            max_width = face->glyph->bitmap.width;
+        }
+        total_width += face->glyph->bitmap.width;
+
+
         charData_tmp.glyph_bitmap_width = (GLfloat)(face->glyph->bitmap.width);
         charData_tmp.glyph_bitmap_rows = (GLfloat)(face->glyph->bitmap.rows);
         charData_tmp.glyph_bitmap_left = (GLfloat)(face->glyph->bitmap_left);
         charData_tmp.glyph_bitmap_top = (GLfloat)(face->glyph->bitmap_top);
         charData_tmp.glyph_advance_x = ((GLfloat)(face->glyph->advance.x))/64.0f;
+        charData_tmp.glyph_bitmap_buffer = new unsigned char[int((face->glyph->bitmap.width)*(face->glyph->bitmap.rows))];
+        for(unsigned int i = 0; i < (face->glyph->bitmap.width)*(face->glyph->bitmap.rows); i++){
+            charData_tmp.glyph_bitmap_buffer[i] = face->glyph->bitmap.buffer[i];
+        }
 
+
+        glGenTextures(1, &TextureID);
+        glBindTexture(GL_TEXTURE_2D, TextureID);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, charData_tmp.glyph_bitmap_width, charData_tmp.glyph_bitmap_rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, charData_tmp.glyph_bitmap_buffer);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glBindTexture (GL_TEXTURE_2D, 0);
+
+        charData_tmp.characterTextureID = TextureID;
         charactersMap[c] = charData_tmp;
     }
+
+    cout << "Glyph count = " << charactersMap.size() << endl;
+    cout << "Max rows = " << max_rows << endl;
+    cout << "Max width = " << max_width << endl;
+    cout << "Total_width = " << total_width << endl;
+
+    char c = '}';
+
+    int pen = 0;
+
+
+    CharacterData charData_A_glyph = charactersMap['A'];
+
+    CharacterData characterData_nawias_glyph;
+
+    characterData_nawias_glyph.glyph_bitmap_width = total_width;
+    characterData_nawias_glyph.glyph_bitmap_rows = max_rows;
+    characterData_nawias_glyph.glyph_bitmap_left = 0;
+    characterData_nawias_glyph.glyph_bitmap_top = max_rows;
+    characterData_nawias_glyph.glyph_advance_x = max_rows;
+    characterData_nawias_glyph.glyph_bitmap_buffer = new unsigned char[(int)((total_width)*(max_rows))];
+
+
+    for(char c = ' '; c <= 'z'; c++)
+    {
+
+        charData_A_glyph = charactersMap[c];
+        for(unsigned int j = 0; j < (unsigned int)(charData_A_glyph.glyph_bitmap_rows); j++){
+            for(unsigned int i = 0; i < (unsigned int)((charData_A_glyph.glyph_bitmap_width)); i++){
+                characterData_nawias_glyph.glyph_bitmap_buffer[pen+ i + j*total_width] = charData_A_glyph.glyph_bitmap_buffer[i + j*(int)(charData_A_glyph.glyph_bitmap_width)];
+            }
+        }
+
+        pen += charData_A_glyph.glyph_bitmap_width;
+    }
+
+
+
+
+    glGenTextures(1, &TextureID);
+    glBindTexture(GL_TEXTURE_2D, TextureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, characterData_nawias_glyph.glyph_bitmap_width, characterData_nawias_glyph.glyph_bitmap_rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, characterData_nawias_glyph.glyph_bitmap_buffer);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture (GL_TEXTURE_2D, 0);
+
+    characterData_nawias_glyph.characterTextureID = TextureID;
+    charactersMap['}'] = characterData_nawias_glyph;
+
 
     FT_Done_Face (face);
     FT_Done_FreeType (ft);
@@ -213,7 +286,7 @@ void TextRenderer_v1::Load(std::string font, GLuint fontSize){
 
 
 
-static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source) {
+GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source) {
     enum Consts {INFOLOG_LEN = 512};
     GLchar infoLog[INFOLOG_LEN];
     GLint fragment_shader;
@@ -263,7 +336,7 @@ static GLint compileShaders(const char *vertex_shader_source, const char *fragme
     return shader_program;
 }
 
-GLuint TextRenderer_v1::prepareVBO(const GLfloat * data, GLsizeiptr size){
+GLuint TextRenderer_v2::prepareVBO(const GLfloat * data, GLsizeiptr size){
     GLuint vbo;
 
     glGenBuffers(1,&vbo);
@@ -279,21 +352,21 @@ GLuint TextRenderer_v1::prepareVBO(const GLfloat * data, GLsizeiptr size){
     return vbo;
 }
 
-bool TextRenderer_v1::doOptymalization_2(GLfloat x_right){
+bool TextRenderer_v2::doOptymalization_2(GLfloat x_right){
     if(x_right < 0.0f){
         return true;
     }
     return false;
 }
 
-bool TextRenderer_v1::doOptymalization_1(GLfloat  x_left, GLfloat y_top, GLfloat y_bottom ){
+bool TextRenderer_v2::doOptymalization_1(GLfloat  x_left, GLfloat y_top, GLfloat y_bottom ){
     if((x_left > current_viewport_width_in_pixels) || (y_bottom > current_viewport_height_in_pixels) || (y_top < 0.0f)){
         return true;
     }
     return false;
 }
 
-static void drawGlyphToConsole(FT_Face &face){
+void drawGlyphToConsole(FT_Face &face){
 
     for(unsigned int i = 0; i < face->glyph->bitmap.rows; i++){
         for(unsigned int j = 0; j < face->glyph->bitmap.width; j++){
