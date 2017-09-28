@@ -15,8 +15,7 @@ using namespace std;
 
 static GLuint shader_program;
 
-static GLuint prepareVBO(const GLfloat * data, GLsizeiptr size);
-GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
+static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
 void drawGlyphToConsole(FT_Face &face);
 
 static const GLchar* vertex_shader_source =
@@ -45,7 +44,8 @@ static const GLchar* fragment_shader_source =
         "                                           \n"
         "void main() {                              \n"
         "   vec4 sampled = vec4(1.0, 1.0, 1.0, texture2D(textureUnit,v_TexCoordinate).a);   \n"
-        "   gl_FragColor = vec4(0.5,0.5,0.5,0.3) + vec4(0.0,1.0,0.0,1.0) * sampled ;     \n"
+        "   gl_FragColor = /*vec4(0.5,0.5,0.5,0.3) +*/ vec4(1.0,1.0,0.0,1.0) * sampled ;     \n"
+        "   //gl_FragColor = vec4(1.0,1.0,1.0,1.0);               \n"
         "}                                                      \n";
 
 
@@ -72,6 +72,39 @@ TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewp
     glUseProgram(0);
 
     vbo = prepareVBO(verticles_table, sizeof(verticles_table));
+
+
+    const int TEXT_BUFFER_SIZE = 256;
+    TextData.textBuffer = new char[TEXT_BUFFER_SIZE];
+    TextData.textBuffer = "Tekst do wyswietlenia";
+
+    glGenTextures(1, &(TextData.textBufferTexture));
+    glBindTexture(GL_TEXTURE_2D, TextData.textBufferTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, TEXT_BUFFER_SIZE, 1, 0, GL_ALPHA, GL_UNSIGNED_BYTE, TextData.textBuffer);
+    glBindTexture (GL_TEXTURE_2D, 0);
+
+
+
+
+    //preparing EBO
+    for(unsigned int i = 0; i < MAX_STRING_LENGHT; i++){
+        indices[0 + i*6] = 0 + i*4;
+        indices[1 + i*6] = 1 + i*4;
+        indices[2 + i*6] = 2 + i*4;
+        indices[3 + i*6] = 1 + i*4;
+        indices[4 + i*6] = 2 + i*4;
+        indices[5 + i*6] = 3 + i*4;
+    }
+
+
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+
+
 }
 
 TextRenderer_v2::~TextRenderer_v2(){
@@ -79,6 +112,14 @@ TextRenderer_v2::~TextRenderer_v2(){
 }
 
 void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y){
+
+    //text = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm";
+    //text = "QWERTFSDAFASDFASDFASDFAEDFGASDFASDFASDFSDFAfasdfasdfDFSGADFGAYdfgasdfg";
+
+
+    //text = "ABCEFGHIJASDFGASDFGASDFASDFASDFASDFKLMNOPQRASTUfasdfaWXYZ";
+
+    //cout << "text.size() = " << text.size() << endl;
 
     GLfloat pen_x = x;
     GLfloat pen_y = y;
@@ -90,52 +131,98 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y){
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+
     glUseProgram(shader_program);
     {
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
-        //glActiveTexture(GL_TEXTURE0);
-        //glUniform1i(textureUnitLocation, GL_TEXTURE0);
+        glActiveTexture(GL_TEXTURE1);
+        glUniform1i(textureUnitLocation, 1);
+        glBindTexture(GL_TEXTURE_2D, GlyphAtlasData.glyphAtlasTextureId);
 
 
-        // Iterate through all characters
-        std::string::const_iterator c;
-        for (c = text.begin(); c != text.end(); c++)
-        {
-            charData_tmp = charactersMap[*c];
+        int index = 0;
 
-            x_left = pen_x + charData_tmp.glyph_bitmap_left;
-            x_right = x_left + charData_tmp.glyph_bitmap_width;
-            y_top = pen_y + charData_tmp.glyph_bitmap_top;
-            y_bottom = y_top - charData_tmp.glyph_bitmap_rows;
+        if(previous_string != text){ // Optymalization - update buffers only when text changed
+            previous_string = text;
+            // Iterate through all characters
+            std::string::const_iterator c;
+            for (c = text.begin(); c != text.end(); c++)
+            {
+                charData_tmp = charactersMap[*c];
 
-            if(doOptymalization_1(x_left, y_top, y_bottom)){
-                break;
-            }else if(doOptymalization_2(x_right)){
-                continue;
+                x_left = pen_x + charData_tmp.glyph_bitmap_left;
+                x_right = x_left + charData_tmp.glyph_bitmap_width;
+                y_top = pen_y + charData_tmp.glyph_bitmap_top;
+                y_bottom = y_top - charData_tmp.glyph_bitmap_rows;
+
+                if(doOptymalization_1(x_left, y_top, y_bottom)){
+                    break;
+                }else if(doOptymalization_2(x_right)){
+                    continue;
+                }
+
+
+
+                //LEFT TOP 0
+                verticles_table[0 + index] = x_left;
+                verticles_table[1 + index] = y_top;
+                verticles_table[3 + index] = charData_tmp.u_coord_left;
+                verticles_table[4 + index] = 0.0f;//charData_tmp.v_coord_top;
+                //LEFT BOTTOM 1
+                verticles_table[5 + index] = x_left;
+                verticles_table[6 + index] = y_bottom;
+                verticles_table[8 + index] = charData_tmp.u_coord_left;
+                verticles_table[9 + index] = 1.0f;//charData_tmp.v_coord_bottom;
+
+                //RIGH TOP 2
+                verticles_table[10 + index] = x_right;
+                verticles_table[11 + index] = y_top;
+                verticles_table[13 + index] = charData_tmp.u_coord_right;
+                verticles_table[14 + index] = 0.0f;//charData_tmp.v_coord_top;
+
+                //RIGHT BOTTOM 3
+                verticles_table[15 + index] = x_right;
+                verticles_table[16 + index] = y_bottom;
+                verticles_table[18 + index] = charData_tmp.u_coord_right;
+                verticles_table[19 + index] = 1.0f;//charData_tmp.v_coord_bottom;
+
+
+
+
+
+
+                //            if(*c == '!'){
+                //                cout << "**** DRAW ENGINE ****" << endl;
+                //                cout << " znak = " << *c << endl;
+                //                for(unsigned int i =0; i < 20; i++ ){
+                //                    cout << "verticles_table[" << i << "] = " << verticles_table[i] << endl;
+                //                }
+                //                cout << "*********************" << endl;
+                //            }
+
+
+
+                pen_x += charData_tmp.glyph_advance_x;
+                index += 20;
             }
-
-            verticles_table[0] = x_right;
-            verticles_table[1] = y_top;
-            verticles_table[5] = x_right;
-            verticles_table[6] = y_bottom;
-            verticles_table[10] = x_left;
-            verticles_table[11] = y_bottom;
-            verticles_table[15] = x_left;
-            verticles_table[16] = y_top;
-
-            glBindTexture(GL_TEXTURE_2D, charData_tmp.characterTextureID);
             glBufferSubData (GL_ARRAY_BUFFER, 0, sizeof(verticles_table), verticles_table);
-            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-            pen_x += charData_tmp.glyph_advance_x;
         }
 
+
+        //glDrawArrays(GL_TRIANGLE_STRIP, 0,4*text.size() );
+        glDrawElements(GL_TRIANGLES, 6*text.size(), GL_UNSIGNED_INT, 0);
+
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindTexture (GL_TEXTURE_2D, 0);
 
     }
     glUseProgram(0);
+
 }
 
 void TextRenderer_v2::onVievportResize(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels){
@@ -172,8 +259,8 @@ void TextRenderer_v2::Load(std::string font, GLuint fontSize){
 
     GLuint TextureID;
 
-    int max_rows = 0;
-    int max_width = 0;
+    unsigned int max_rows = 0;
+    unsigned int max_width = 0;
     int total_width = 0;
 
     for(char c = ' '; c <= 'z'; c++)
@@ -229,6 +316,9 @@ void TextRenderer_v2::Load(std::string font, GLuint fontSize){
         charactersMap[c] = charData_tmp;
     }
 
+
+
+
     cout << "Glyph count = " << charactersMap.size() << endl;
     cout << "Max rows = " << max_rows << endl;
     cout << "Max width = " << max_width << endl;
@@ -236,48 +326,13 @@ void TextRenderer_v2::Load(std::string font, GLuint fontSize){
 
     char c = '}';
 
-    int pen = 0;
 
-
-    CharacterData charData_A_glyph = charactersMap['A'];
-
-    CharacterData characterData_nawias_glyph;
-
-    characterData_nawias_glyph.glyph_bitmap_width = total_width;
-    characterData_nawias_glyph.glyph_bitmap_rows = max_rows;
-    characterData_nawias_glyph.glyph_bitmap_left = 0;
-    characterData_nawias_glyph.glyph_bitmap_top = max_rows;
-    characterData_nawias_glyph.glyph_advance_x = max_rows;
-    characterData_nawias_glyph.glyph_bitmap_buffer = new unsigned char[(int)((total_width)*(max_rows))];
-
-
-    for(char c = ' '; c <= 'z'; c++)
-    {
-
-        charData_A_glyph = charactersMap[c];
-        for(unsigned int j = 0; j < (unsigned int)(charData_A_glyph.glyph_bitmap_rows); j++){
-            for(unsigned int i = 0; i < (unsigned int)((charData_A_glyph.glyph_bitmap_width)); i++){
-                characterData_nawias_glyph.glyph_bitmap_buffer[pen+ i + j*total_width] = charData_A_glyph.glyph_bitmap_buffer[i + j*(int)(charData_A_glyph.glyph_bitmap_width)];
-            }
-        }
-
-        pen += charData_A_glyph.glyph_bitmap_width;
-    }
+    prepareGlypAtlas(total_width, max_rows);
 
 
 
 
-    glGenTextures(1, &TextureID);
-    glBindTexture(GL_TEXTURE_2D, TextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, characterData_nawias_glyph.glyph_bitmap_width, characterData_nawias_glyph.glyph_bitmap_rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, characterData_nawias_glyph.glyph_bitmap_buffer);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glBindTexture (GL_TEXTURE_2D, 0);
 
-    characterData_nawias_glyph.characterTextureID = TextureID;
-    charactersMap['}'] = characterData_nawias_glyph;
 
 
     FT_Done_Face (face);
@@ -350,6 +405,56 @@ GLuint TextRenderer_v2::prepareVBO(const GLfloat * data, GLsizeiptr size){
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return vbo;
+}
+
+void TextRenderer_v2::prepareGlypAtlas(unsigned int total_width, unsigned int max_rows){
+    CharacterData characterData_nawias_glyph;
+
+    characterData_nawias_glyph.glyph_bitmap_width = total_width;
+    characterData_nawias_glyph.glyph_bitmap_rows = max_rows;
+    characterData_nawias_glyph.glyph_bitmap_left = 0;
+    characterData_nawias_glyph.glyph_bitmap_top = max_rows;
+    characterData_nawias_glyph.glyph_advance_x = max_rows;
+    characterData_nawias_glyph.glyph_bitmap_buffer = new unsigned char[(int)((total_width)*(max_rows))];
+
+    int pen = 0;
+    CharacterData tmp_CharacterData;
+    for(char c = ' '; c <= 'z'; c++)
+    {
+
+        tmp_CharacterData = charactersMap[c];
+        for(unsigned int j = 0; j < (unsigned int)(tmp_CharacterData.glyph_bitmap_rows); j++){
+            for(unsigned int i = 0; i < (unsigned int)((tmp_CharacterData.glyph_bitmap_width)); i++){
+                characterData_nawias_glyph.glyph_bitmap_buffer[pen+ i + j*total_width] = tmp_CharacterData.glyph_bitmap_buffer[i + j*(int)(tmp_CharacterData.glyph_bitmap_width)];
+            }
+        }
+
+
+
+
+
+        charactersMap[c].u_coord_left = ((GLfloat)pen/(GLfloat)total_width);
+        pen += tmp_CharacterData.glyph_bitmap_width;
+        charactersMap[c].u_coord_right = ((GLfloat)pen/(GLfloat)total_width);
+
+        cout << "ZNAK = " << c << endl;
+        cout <<  "charactersMap[c].u_coord_left = " << charactersMap[c].u_coord_left << endl;
+        cout << "charactersMap[c].u_coord_right = " << charactersMap[c].u_coord_right << endl;
+
+
+    }
+
+    glGenTextures(1, & GlyphAtlasData.glyphAtlasTextureId);
+    glBindTexture(GL_TEXTURE_2D,  GlyphAtlasData.glyphAtlasTextureId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, characterData_nawias_glyph.glyph_bitmap_width, characterData_nawias_glyph.glyph_bitmap_rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, characterData_nawias_glyph.glyph_bitmap_buffer);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture (GL_TEXTURE_2D, 0);
+
+    characterData_nawias_glyph.characterTextureID =  GlyphAtlasData.glyphAtlasTextureId;
+    charactersMap['}'] = characterData_nawias_glyph;
 }
 
 bool TextRenderer_v2::doOptymalization_2(GLfloat x_right){
