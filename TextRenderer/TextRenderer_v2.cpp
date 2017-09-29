@@ -45,7 +45,7 @@ static const GLchar* fragment_shader_source =
         "                                           \n"
         "void main() {                              \n"
         "   vec4 sampled = vec4(1.0, 1.0, 1.0, texture2D(textureUnit,v_TexCoordinate).a);   \n"
-        "   gl_FragColor = vec4(0.5,0.5,0.5,0.3) + vec4(0.0,1.0,0.0,1.0) * sampled ;     \n"
+        "   gl_FragColor = /*vec4(0.5,0.5,0.5,0.3) + */vec4(0.0,1.0,0.0,1.0) * sampled ;     \n"
         "}                                                      \n";
 
 
