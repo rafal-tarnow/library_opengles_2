@@ -154,19 +154,20 @@ void DE_drawRectangle(DE_Rectangle * rectangle){
         glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(rectangle->view));
         glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(rectangle->model));
 
-        glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
-
-        glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-        glEnableVertexAttribArray(position_location);
-
-        glVertexAttribPointer(texCoord_attrib_location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-        glEnableVertexAttribArray(texCoord_attrib_location);
-
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, rectangle->texture_id);
         glUniform1i(textureUnitLocation, GL_TEXTURE0);
 
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
+        {
+            glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+            glEnableVertexAttribArray(position_location);
+
+            glVertexAttribPointer(texCoord_attrib_location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+            glEnableVertexAttribArray(texCoord_attrib_location);
+
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     glUseProgram(0);
