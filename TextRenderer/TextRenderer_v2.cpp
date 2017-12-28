@@ -138,9 +138,20 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y){
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
+<<<<<<< HEAD
         glActiveTexture(GL_TEXTURE1);
         glUniform1i(textureUnitLocation, 1);
         glBindTexture(GL_TEXTURE_2D, GlyphAtlasData.glyphAtlasTextureId);
+=======
+        glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(position_location);
+
+        glVertexAttribPointer(texCoord_attrib_location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(texCoord_attrib_location);
+
+        //glActiveTexture(GL_TEXTURE0);
+        //glUniform1i(textureUnitLocation, GL_TEXTURE0);
+>>>>>>> 3b018f1d22dcc413b5058003badaef475fd91ef1
 
 
         int index = 0;
@@ -244,11 +255,17 @@ void TextRenderer_v2::Load(std::string font, GLuint fontSize){
     FT_Library ft;
 
     if (FT_Init_FreeType(&ft))
-        std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+    {
+        std::cout << "[ERROR]::FREETYPE: Could not init FreeType Library" << std::endl;
+        exit(-1);
+    }
 
     FT_Face face;
     if (FT_New_Face(ft, font.c_str(), 0, &face))
+    {
         std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     if(FT_Select_Charmap(face, FT_ENCODING_UNICODE ))
         std::cout << "ERROR Select Charmap" << std::endl;
