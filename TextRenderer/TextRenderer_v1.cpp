@@ -11,8 +11,6 @@
 
 using namespace std;
 
-static GLuint shader_program;
-
 static GLuint prepareVBO(const GLfloat * data, GLsizeiptr size);
 static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
 static void drawGlyphToConsole(FT_Face &face);

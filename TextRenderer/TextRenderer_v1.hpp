@@ -50,5 +50,6 @@ private:
 
     GLfloat current_viewport_width_in_pixels;
     GLfloat current_viewport_height_in_pixels;
+    GLuint shader_program;
 };
 
