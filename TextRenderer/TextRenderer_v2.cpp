@@ -45,7 +45,7 @@ static const GLchar* fragment_shader_source =
         "                                           \n"
         "void main() {                              \n"
         "   vec4 sampled = vec4(1.0, 1.0, 1.0, texture2D(textureUnit,v_TexCoordinate).a);   \n"
-        "   gl_FragColor = /*vec4(0.5,0.5,0.5,0.3) +*/ vec4(1.0,1.0,0.0,1.0) * sampled ;     \n"
+        "   gl_FragColor = /*vec4(0.5,0.5,0.5,0.3) +*/ vec4(0.0,1.0,0.0,1.0) * sampled ;     \n"
         "   //gl_FragColor = vec4(1.0,1.0,1.0,1.0);               \n"
         "}                                                      \n";
 
@@ -139,11 +139,11 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y){
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
         glActiveTexture(GL_TEXTURE1);
         glUniform1i(textureUnitLocation, 1);
         glBindTexture(GL_TEXTURE_2D, GlyphAtlasData.glyphAtlasTextureId);
-=======
+//=======
         glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
         glEnableVertexAttribArray(position_location);
 
@@ -152,7 +152,7 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y){
 
         //glActiveTexture(GL_TEXTURE0);
         //glUniform1i(textureUnitLocation, GL_TEXTURE0);
->>>>>>> 3b018f1d22dcc413b5058003badaef475fd91ef1
+//>>>>>>> 3b018f1d22dcc413b5058003badaef475fd91ef1
 
 
         int index = 0;
