@@ -8,6 +8,7 @@ static GLint compileShaders(const char *vertex_shader_source, const char *fragme
 
 static const GLchar* vertex_shader_source =
         "#version 100                           \n"
+        "//Rectangle_Renderer vertex shader     \n"
         "attribute vec3 position;               \n"
         "attribute vec2 texCoord;               \n"
         "varying vec2 v_TexCoordinate;          \n"
@@ -24,6 +25,7 @@ static const GLchar* vertex_shader_source =
 
 static const GLchar* fragment_shader_source =
         "#version 100                                               \n"
+        "//Rectangle_Renderer fragmet shader                        \n"
         "precision mediump float;                                   \n"
         "varying vec2 v_TexCoordinate;                              \n"
         "uniform sampler2D textureUnit;                             \n"
@@ -147,6 +149,35 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GL
     rectangle->vbo_id = prepareVBO(rectangle_vertices, sizeof(rectangle_vertices));
 }
 
+void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, GLfloat x_top_left, GLfloat y_top_left, GLfloat x_bottom_right, GLfloat y_bottom_right, GLfloat z)
+{
+    if(shaderInited == 0)
+    {
+        cout << "[ERROR] DE_initRectangle shader not inited" << endl;
+        exit(-1);
+    }
+
+    //TOP RIGHT VERTICES
+    rectangle_vertices[0] = x_bottom_right;
+    rectangle_vertices[1] = y_top_left;
+    rectangle_vertices[2] = z;
+    //BOTTOM RIGHT VERTICES
+    rectangle_vertices[5] = x_bottom_right;
+    rectangle_vertices[6] = y_bottom_right;
+    rectangle_vertices[7] = z;
+    //BOTTOM LEFT VERTICES
+    rectangle_vertices[10] = x_top_left;
+    rectangle_vertices[11] = y_bottom_right;
+    rectangle_vertices[12] = z;
+    //TOP LEFT VERTICES
+    rectangle_vertices[15] = x_top_left;
+    rectangle_vertices[16] = y_top_left;
+    rectangle_vertices[17] = z;
+
+    rectangle->texture_id = textureId;
+    rectangle->vbo_id = prepareVBO(rectangle_vertices, sizeof(rectangle_vertices));
+}
+
 void DE_drawRectangle(DE_Rectangle * rectangle){
     glUseProgram(shader_program);
     {
@@ -193,7 +224,7 @@ GLint compileShaders(const char *vertex_shader_source, const char *fragment_shad
     glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(vertex_shader, INFOLOG_LEN, NULL, infoLog);
-        printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n%s\n", infoLog);
+        printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED: %s\n%s\n",vertex_shader_source, infoLog);
         exit(-1);
     }
 
@@ -204,7 +235,7 @@ GLint compileShaders(const char *vertex_shader_source, const char *fragment_shad
     glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         glGetShaderInfoLog(fragment_shader, INFOLOG_LEN, NULL, infoLog);
-        printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n%s\n", infoLog);
+        printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: %s\n%s\n",fragment_shader_source, infoLog);
         exit(-1);
     }
 

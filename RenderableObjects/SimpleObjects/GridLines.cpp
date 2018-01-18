@@ -80,7 +80,7 @@ void CGridLines::FillVertexBuffer(GLfloat* pBuffer) {
 
 
     float x = m_left;
-    for(int i = 0; i < number_of_vertical_lines; i++)
+    for(unsigned int i = 0; i < number_of_vertical_lines; i++)
     {
         //0
         vertices[i*4+0] = glm::vec3(x, m_top, 0); //vertex position
@@ -94,7 +94,7 @@ void CGridLines::FillVertexBuffer(GLfloat* pBuffer) {
     }
 
     float y = m_top;
-    for(int i = number_of_vertical_lines; i < number_of_horizontal_lines + number_of_vertical_lines; i++)
+    for(unsigned int i = number_of_vertical_lines; i < number_of_horizontal_lines + number_of_vertical_lines; i++)
     {
         //0
         vertices[i*4+0] = glm::vec3(m_left, y, 0); //vertex position

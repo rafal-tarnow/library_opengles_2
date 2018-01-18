@@ -19,6 +19,7 @@ static void drawGlyphToConsole(FT_Face &face);
 
 static const GLchar* vertex_shader_source =
         "#version 100                               \n"
+        "//TextRenderer_v1 vertex shader            \n"
         "attribute vec3 position;                   \n"
         "attribute vec2 texCoord;                   \n"
         "varying vec2 v_TexCoordinate;              \n"
@@ -35,7 +36,7 @@ static const GLchar* vertex_shader_source =
 
 static const GLchar* fragment_shader_source =
         "#version 100                               \n"
-        "                                           \n"
+        "//TextRenderer_v1 fragment shader          \n"
         "precision mediump float;                   \n"
         "                                           \n"
         "varying vec2 v_TexCoordinate;              \n"
