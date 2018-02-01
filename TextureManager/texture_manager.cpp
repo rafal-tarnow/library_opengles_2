@@ -1,6 +1,6 @@
 #include "texture_manager.hpp"
 
-#include <SOIL.h>
+#include <SOIL/SOIL.h>
 
 map<string, GLuint> TextureManager::mapaTesktur;
 
