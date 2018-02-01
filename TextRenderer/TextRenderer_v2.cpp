@@ -16,7 +16,7 @@ using namespace std;
 static GLuint shader_program;
 
 static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
-void drawGlyphToConsole(FT_Face &face);
+static void drawGlyphToConsole(FT_Face &face);
 
 static const GLchar* vertex_shader_source =
         "#version 100                               \n"
