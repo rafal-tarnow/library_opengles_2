@@ -2,6 +2,9 @@
 
 #include "opengl_includes.hpp"
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #include <string>
 #include <map>
 
@@ -16,9 +19,11 @@ public:
     void onVievportResize(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels);
 
     void Load(std::string font, GLuint fontSize);
+    void LoadFromMemory(const unsigned char * font_data, int data_size, GLuint fontSize);
     void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel);
 
 private:
+    void loadCommon(FT_Library &ft, FT_Face &face, GLuint &fontSize);
     void prepareGlypAtlas(unsigned int total_width, unsigned int max_rows);
     bool doOptymalization_2(GLfloat x_right);
     bool doOptymalization_1(GLfloat  x_left, GLfloat y_top, GLfloat y_bottom );
