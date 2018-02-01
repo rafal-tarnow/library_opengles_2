@@ -1,6 +1,6 @@
 #pragma once
 
-#include "opengl_includes.hpp"
+#include <GLES2/gl2.h>
 
 #include <string>
 #include <map>

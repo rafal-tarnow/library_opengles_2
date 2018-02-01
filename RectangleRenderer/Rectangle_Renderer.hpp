@@ -1,7 +1,6 @@
 #pragma once
 
-#define GLFW_INCLUDE_ES2
-#include <GLFW/glfw3.h>
+#include <GLES2/gl2.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
