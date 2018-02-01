@@ -1,11 +1,6 @@
 #pragma once
 
-#ifdef BACKEND_OPEN_GL_ES
-#define GLFW_INCLUDE_ES2
-#include <GLFW/glfw3.h>
-#else
-#include <GL/gl.h>
-#endif
+#include <GLES2/gl2.h>
 
 #include <string>
 #include <map>

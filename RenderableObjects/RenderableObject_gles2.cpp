@@ -30,20 +30,31 @@ void RenderableObject_gles2::Init() {
     glBindBuffer (GL_ARRAY_BUFFER, vboVerticesID);
     glBufferData (GL_ARRAY_BUFFER, totalVertices * sizeof(glm::vec3), 0, GL_STATIC_DRAW);
 
-    GLfloat* pBuffer = static_cast<GLfloat*>(glMapBufferRange(GL_ARRAY_BUFFER, 0, totalVertices * sizeof(glm::vec3), GL_MAP_WRITE_BIT));
-    //GLfloat* pBuffer = static_cast<GLfloat*>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
-    FillVertexBuffer(pBuffer);
-    glUnmapBuffer(GL_ARRAY_BUFFER);
+    {
+        //    GLfloat* pBuffer = static_cast<GLfloat*>(glMapBufferRange(GL_ARRAY_BUFFER, 0, totalVertices * sizeof(glm::vec3), GL_MAP_WRITE_BIT));
+        //    FillVertexBuffer(pBuffer);
+        //    glUnmapBuffer(GL_ARRAY_BUFFER);
 
+        GLfloat * pBuffer = (GLfloat*)(new uint8_t [totalVertices * sizeof(glm::vec3)]);
+        FillVertexBuffer(pBuffer);
+        delete[] pBuffer;
+
+    }
     GetVertexAttribPointers();
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndicesID);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, totalIndices * sizeof(GLuint), 0, GL_STATIC_DRAW);
 
-    GLuint* pIBuffer = static_cast<GLuint*>(glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, totalIndices * sizeof(GLuint), GL_MAP_WRITE_BIT));
-   // GLuint* pIBuffer = static_cast<GLuint*>(glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY));
-    FillIndexBuffer(pIBuffer);
-    glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+    {
+        //    GLuint* pIBuffer = static_cast<GLuint*>(glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, totalIndices * sizeof(GLuint), GL_MAP_WRITE_BIT));
+        //    FillIndexBuffer(pIBuffer);
+        //    glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
+        GLuint * pIBuffer = (GLuint*)(new GLuint [totalIndices]);
+        FillIndexBuffer(pIBuffer);
+        delete[] pIBuffer;
+    }
+
     //}
     //glBindVertexArray(0);
 }
