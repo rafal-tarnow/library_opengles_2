@@ -1,6 +1,7 @@
 #include "Rectangle_Renderer.hpp"
 #include "../TextureManager/texture_manager.hpp"
 #include <iostream>
+#include "../../system_log.hpp"
 
 using namespace std;
 
@@ -87,6 +88,37 @@ GLuint DE_initShader(){
     return shader_program;
 }
 
+void DE_initRectangle(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat width, GLfloat height, GLfloat z)
+{
+    if(shaderInited == 0)
+    {
+        LOGD("ERROR shader not inited");
+        exit(-1);
+    }
+
+    GLfloat width_2 = width/2.0f;
+    GLfloat height_2 = height/2.0f;
+
+    //TOP RIGHT VERTICES
+    rectangle_vertices[0] = width_2;
+    rectangle_vertices[1] = height_2;
+    rectangle_vertices[2] = z;
+    //BOTTOM RIGHT VERTICES
+    rectangle_vertices[5] = width_2;
+    rectangle_vertices[6] = -height_2;
+    rectangle_vertices[7] = z;
+    //BOTTOM LEFT VERTICES
+    rectangle_vertices[10] = -width_2;
+    rectangle_vertices[11] = -height_2;
+    rectangle_vertices[12] = z;
+    //
+    rectangle_vertices[15] = -width_2;
+    rectangle_vertices[16] = height_2;
+    rectangle_vertices[17] = z;
+
+    rectangle->texture_id = *textureId;
+    rectangle->vbo_id = prepareVBO(rectangle_vertices, sizeof(rectangle_vertices));
+}
 
 void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GLfloat width, GLfloat height, GLfloat z)
 {
@@ -149,7 +181,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GL
     rectangle->vbo_id = prepareVBO(rectangle_vertices, sizeof(rectangle_vertices));
 }
 
-void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, GLfloat x_top_left, GLfloat y_top_left, GLfloat x_bottom_right, GLfloat y_bottom_right, GLfloat z)
+void DE_initRectangle_1(DE_Rectangle * rectangle, GLuint textureId, GLfloat x_top_left, GLfloat y_top_left, GLfloat x_bottom_right, GLfloat y_bottom_right, GLfloat z)
 {
     if(shaderInited == 0)
     {
