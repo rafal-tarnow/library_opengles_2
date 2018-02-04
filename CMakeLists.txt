@@ -15,6 +15,7 @@ add_library (library_opengles_2 STATIC
     TextRenderer/TextRenderer_v1.cpp
     TextRenderer/TextRenderer_v2.cpp
     RectangleRenderer/Rectangle_Renderer.cpp
+    RectangleRenderer/LineStrip_Renderer.cpp
     TextureManager/texture_manager.cpp
     RenderableObjects/GLSLShader.cpp
     RenderableObjects/RenderableObject_gles2.cpp
