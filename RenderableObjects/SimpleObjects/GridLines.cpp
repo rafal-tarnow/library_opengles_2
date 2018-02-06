@@ -28,7 +28,6 @@ CGridLines::CGridLines(float left, float right, float top, float bottom)
     shader.CreateAndLinkProgram();
     shader.Use();
     {
-
         shader.AddAttribute("vColour");
         shader.AddAttribute("vVertex");
 

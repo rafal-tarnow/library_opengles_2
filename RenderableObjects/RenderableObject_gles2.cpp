@@ -14,8 +14,6 @@ RenderableObject_gles2::~RenderableObject_gles2(void)
 }
 
 void RenderableObject_gles2::Init() {
-    //przygotowanie VAO i VBO
-    //glGenVertexArrays(1, &vaoID);
     glGenBuffers(1, &vboVerticesID);
     glGenBuffers(1, &vboIndicesID);
 
@@ -24,49 +22,36 @@ void RenderableObject_gles2::Init() {
     totalIndices  = GetTotalIndices();
     primType      = GetPrimitiveType();
 
-    //alokacja buforów
-    //glBindVertexArray(vaoID);
-    //{
+
     glBindBuffer (GL_ARRAY_BUFFER, vboVerticesID);
-    glBufferData (GL_ARRAY_BUFFER, totalVertices * sizeof(glm::vec3), 0, GL_STATIC_DRAW);
-
     {
-        //    GLfloat* pBuffer = static_cast<GLfloat*>(glMapBufferRange(GL_ARRAY_BUFFER, 0, totalVertices * sizeof(glm::vec3), GL_MAP_WRITE_BIT));
-        //    FillVertexBuffer(pBuffer);
-        //    glUnmapBuffer(GL_ARRAY_BUFFER);
-
         GLfloat * pBuffer = (GLfloat*)(new uint8_t [totalVertices * sizeof(glm::vec3)]);
         FillVertexBuffer(pBuffer);
+        glBufferData (GL_ARRAY_BUFFER, totalVertices * sizeof(glm::vec3), pBuffer, GL_STATIC_DRAW);
         delete[] pBuffer;
 
     }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
     GetVertexAttribPointers();
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndicesID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, totalIndices * sizeof(GLuint), 0, GL_STATIC_DRAW);
-
     {
-        //    GLuint* pIBuffer = static_cast<GLuint*>(glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, 0, totalIndices * sizeof(GLuint), GL_MAP_WRITE_BIT));
-        //    FillIndexBuffer(pIBuffer);
-        //    glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-
         GLuint * pIBuffer = (GLuint*)(new GLuint [totalIndices]);
         FillIndexBuffer(pIBuffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, totalIndices * sizeof(GLuint), pIBuffer, GL_STATIC_DRAW);
         delete[] pIBuffer;
     }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    //}
-    //glBindVertexArray(0);
 }
 
-void RenderableObject_gles2::Destroy() {
-    //likwidacja programu shaderowego
+void RenderableObject_gles2::Destroy()
+{
     shader.DeleteShaderProgram();
 
-    //likwidacja vao i vbo
     glDeleteBuffers(1, &vboVerticesID);
     glDeleteBuffers(1, &vboIndicesID);
-    // glDeleteVertexArrays(1, &vaoID);
 }
 
 
