@@ -23,10 +23,14 @@ void GLSLShader::DeleteShaderProgram() {
 }
 
 void GLSLShader::LoadFromString(GLenum type, const string& source) {
-    GLuint shader = glCreateShader (type);
-
     const char * ptmp = source.c_str();
-    glShaderSource (shader, 1, &ptmp, NULL);
+    LoadFromCString(type,ptmp);
+}
+
+void GLSLShader::LoadFromCString(GLenum type, const GLchar * source)
+{
+    GLuint shader = glCreateShader (type);
+    glShaderSource (shader, 1, &source, NULL);
 
     //sprawdzenie, czy shader wczytał się poprawnie
     GLint status;

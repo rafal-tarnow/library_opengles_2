@@ -10,6 +10,7 @@ class GLSLShader
 public:
     GLSLShader(void);
     ~GLSLShader(void);
+    void LoadFromCString(GLenum type, const GLchar * source);
     void LoadFromString(GLenum whichShader, const std::string& source);
     void LoadFromFile(GLenum whichShader, const std::string& filename);
     void CreateAndLinkProgram();

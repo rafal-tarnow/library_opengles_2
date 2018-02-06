@@ -5,6 +5,47 @@
 
 using namespace std;
 
+static const GLchar * color_line_shader_vertex =
+    "#version 310 es            \n"
+    "                           \n"
+    "layout(location = 0) in vec3 vVertex;	//położenie w przestrzeni obiektu \n"
+    "layout(location = 1) in vec3 vColour;  \n"
+    "                                       \n"
+    "                                       \n"
+    "out vec3 Colour;                       \n"
+    "                                       \n"
+    "//uniform                              \n"
+    "uniform mat4 MVP;	//połączona macierz modelu, widoku i rzutowania \n"
+    "uniform mat4 M;                        \n"
+    "uniform mat3 M_IT; //matrix without translations   \n"
+    "                                       \n"
+    "void main()                            \n"
+    "{                                      \n"
+    "Colour = vColour;                      \n"
+    "gl_Position = MVP*vec4(vVertex, 1.0);  \n"
+    "}                                      \n"
+;
+
+static const GLchar * color_line_shader_fragment =
+    "#version 310 es                \n"
+    "precision mediump float;       \n"
+    "                               \n"
+    "//layout(location = 0) out vec4 vFragColor;	//wyjściowy kolor fragmentu \n"
+    "                               \n"
+    "out vec4 fragmentColor;        \n"
+    "                               \n"
+    "in vec3 Colour;                \n"
+    "                               \n"
+    "void main()                    \n"
+    "{                              \n"
+    "   fragmentColor = vec4(Colour, 1.0);  \n"
+    "   //gl_FragColor = vec4(Colour, 1.0); \n"
+    "   //vFragColor = vec4(Colour, 1.0);   \n"
+    "}                              \n"
+;
+
+
+
 CGridLines::CGridLines(float left, float right, float top, float bottom)
 {
     m_top = top;
@@ -22,8 +63,8 @@ CGridLines::CGridLines(float left, float right, float top, float bottom)
     number_of_horizontal_lines = (unsigned int)((m_top - m_bottom)/1.0f) + 1;
 
     //przygotowanie programu shaderowego
-    shader.LoadFromFile(GL_VERTEX_SHADER, "data/shadery/color_line_shader.vert");
-    shader.LoadFromFile(GL_FRAGMENT_SHADER, "data/shadery/color_line_shader.frag");
+    shader.LoadFromCString(GL_VERTEX_SHADER, color_line_shader_vertex);
+    shader.LoadFromCString(GL_FRAGMENT_SHADER, color_line_shader_fragment);
 
     shader.CreateAndLinkProgram();
     shader.Use();
