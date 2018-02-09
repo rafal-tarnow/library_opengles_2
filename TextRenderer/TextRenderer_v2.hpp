@@ -8,6 +8,10 @@
 #include <string>
 #include <map>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 const int MAX_STRING_LENGHT = 5000;
 
 #warning "Przerobic TextRenderer_v2 na singletona"
@@ -15,7 +19,7 @@ const int MAX_STRING_LENGHT = 5000;
 class TextRenderer_v2
 {
 public:
-    TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels);
+    TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels,  glm::vec4 textColor = glm::vec4(1.0,0.0,0.0,1.0));
     ~TextRenderer_v2();
 
     void onVievportResize(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels);
@@ -50,6 +54,7 @@ private:
 
 
 
+
     typedef struct{
         GLuint characterTextureID;
         GLfloat glyph_bitmap_rows;
@@ -78,6 +83,7 @@ private:
         char * textBuffer;
     }TextData;
 
+    GLint textColourLocation;
     GLint projectionMatrixLocation;
     CharacterData charData_tmp;
     std::string::const_iterator c;

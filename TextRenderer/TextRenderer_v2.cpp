@@ -39,16 +39,15 @@ static const GLchar* fragment_shader_source =
         "                                           \n"
         "varying vec2 v_TexCoordinate;              \n"
         "uniform sampler2D textureUnit;             \n"
-        "                                           \n"
+        "uniform vec4 textColor;                    \n"
         "void main() {                              \n"
         "   vec4 sampled = vec4(1.0, 1.0, 1.0, texture2D(textureUnit,v_TexCoordinate).a);   \n"
-        "   gl_FragColor = /*vec4(0.5,0.5,0.5,0.3) +*/ vec4(0.0,1.0,0.0,1.0) * sampled ;     \n"
-        "   //gl_FragColor = vec4(1.0,1.0,1.0,1.0);               \n"
+        "   gl_FragColor = textColor * sampled ;     \n"
         "}                                                      \n";
 
 
 
-TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels){
+TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels, glm::vec4 textColor){
 
     current_viewport_width_in_pixels = viewport_width_in_pixels;
     current_viewport_height_in_pixels = viewport_height_in_pixels;
@@ -59,13 +58,14 @@ TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewp
     position_location = glGetAttribLocation(shader_program, "position");
     texCoord_attrib_location = glGetAttribLocation(shader_program,"texCoord");
     textureUnitLocation = glGetUniformLocation (shader_program, "textureUnit" );
-
+    textColourLocation = glGetUniformLocation(shader_program, "textColor");
 
 
     projectionMatrixLocation = glGetUniformLocation(shader_program, "projection");
     glUseProgram(shader_program);
     {
         glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(glm::ortho(static_cast<GLfloat>(0), static_cast<GLfloat>(viewport_width_in_pixels), static_cast<GLfloat>(0), static_cast<GLfloat>(viewport_height_in_pixels))));
+        glUniform4fv(textColourLocation,1,glm::value_ptr(textColor));
     }
     glUseProgram(0);
 
