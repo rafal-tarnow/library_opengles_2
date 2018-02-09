@@ -9,7 +9,8 @@ HEADERS += \
     $$PWD/TextureManager/texture_manager.hpp \
     $$PWD/RenderableObjects/RenderableObject_gles2.h \
     $$PWD/RenderableObjects/GLSLShader.h \
-    $$PWD/RenderableObjects/SimpleObjects/GridLines.hpp
+    $$PWD/RenderableObjects/SimpleObjects/GridLines.hpp \
+    $$PWD/RectangleRenderer/TriangleStrip_Renderer.hpp
 
 SOURCES += \
     $$PWD/TextRenderer/TextRenderer_v1.cpp \
@@ -19,5 +20,6 @@ SOURCES += \
     $$PWD/TextureManager/texture_manager.cpp \
     $$PWD/RenderableObjects/GLSLShader.cpp \
     $$PWD/RenderableObjects/RenderableObject_gles2.cpp \
-    $$PWD/RenderableObjects/SimpleObjects/GridLines.cpp
+    $$PWD/RenderableObjects/SimpleObjects/GridLines.cpp \
+    $$PWD/RectangleRenderer/TriangleStrip_Renderer.cpp
 

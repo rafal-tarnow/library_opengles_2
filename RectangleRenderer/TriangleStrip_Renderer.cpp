@@ -1,4 +1,4 @@
-#include "LineStrip_Renderer.hpp"
+#include "TriangleStrip_Renderer.hpp"
 #include "../TextureManager/texture_manager.hpp"
 #include <iostream>
 #include "../../system_log.hpp"
@@ -52,7 +52,7 @@ static GLint position_location;
 static GLuint shader_program;
 static int shaderInited = 0;
 
-GLuint LS_initShader()
+GLuint TS_initShader()
 {
     if(shaderInited == 0)
     {
@@ -73,7 +73,7 @@ GLuint LS_initShader()
     return shader_program;
 }
 
-void LS_initLineStrip(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize)
+void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, float * verticlesTable, int tableSize)
 {
     if(shaderInited == 0)
     {
@@ -81,33 +81,37 @@ void LS_initLineStrip(LS_LineStrip * lineStrip, float * verticlesTable, int tabl
         exit(-1);
     }
 
-    lineStrip->numberOfVerticles = tableSize/3;
-    lineStrip->vbo_id = prepareVBO(verticlesTable, tableSize * sizeof(float));
+    triangleStrip->numberOfVerticles = tableSize/3;
+    triangleStrip->vbo_id = prepareVBO(verticlesTable, tableSize * sizeof(float));
 
 }
 
-void LS_drawLineStrip(LS_LineStrip * lineStrip)
+
+
+
+
+void TS_drawTriangleStrip(TS_TriangleStrip * triangleStrip)
 {
     glLineWidth(10.0);
     glUseProgram(shader_program);
     {
-        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->projection));
-        glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->view));
-        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->model));
+        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(triangleStrip->projection));
+        glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(triangleStrip->view));
+        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(triangleStrip->model));
 
-        glBindBuffer(GL_ARRAY_BUFFER, lineStrip->vbo_id);
+        glBindBuffer(GL_ARRAY_BUFFER, triangleStrip->vbo_id);
         {
             glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
             glEnableVertexAttribArray(position_location);
 
-            glDrawArrays(GL_LINE_STRIP, 0, lineStrip->numberOfVerticles);
+            glDrawArrays(GL_LINE_STRIP, 0, triangleStrip->numberOfVerticles);
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     glUseProgram(0);
 }
 
-void LS_deleteLineStrip(LS_LineStrip * lineStrip)
+void TS_deleteTriangleStrip(TS_TriangleStrip * lineStrip)
 {
     glDeleteBuffers(1, &(lineStrip->vbo_id));
 }

@@ -10,6 +10,8 @@
 
 const int MAX_STRING_LENGHT = 5000;
 
+#warning "Przerobic TextRenderer_v2 na singletona"
+
 class TextRenderer_v2
 {
 public:
@@ -18,8 +20,9 @@ public:
 
     void onVievportResize(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels);
 
-    void Load(std::string font, GLuint fontSize);
-    void LoadFromMemory(const unsigned char * font_data, int data_size, GLuint fontSize);
+    void Load(std::string fontFilePath, GLuint fontSize);
+    void LoadFromMemory(const unsigned char * fontFileData, int data_size, GLuint fontSize);
+
     void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel);
 
 private:

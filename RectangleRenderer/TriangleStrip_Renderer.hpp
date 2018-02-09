@@ -9,7 +9,7 @@
 #include <vector>
 using namespace std;
 
-GLuint LS_initShader();
+
 
 typedef struct{
     int numberOfVerticles;
@@ -17,12 +17,12 @@ typedef struct{
     glm::mat4 projection;
     glm::mat4 view;
     glm::mat4 model;
-} LS_LineStrip;
+} TS_TriangleStrip;
 
 
-void LS_initLineStrip(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize);
-void LS_drawLineStrip(LS_LineStrip * lineStrip);
-void LS_deleteLineStrip(LS_LineStrip * lineStrip);
-
+GLuint TS_initShader();
+void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, float * verticlesTable, int tableSize);
+void TS_drawTriangleStrip(TS_TriangleStrip * triangleStrip);
+void TS_deleteTriangleStrip(TS_TriangleStrip * triangleStrip);
 
 
