@@ -9,8 +9,6 @@
 #include <vector>
 using namespace std;
 
-GLuint LS_initShader();
-
 typedef struct{
     int numberOfVerticles;
     GLuint vbo_id;
@@ -21,7 +19,7 @@ typedef struct{
 
 
 void LS_initLineStrip(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize);
-void LS_drawLineStrip(LS_LineStrip * lineStrip);
+void LS_drawLineStrip(LS_LineStrip * lineStrip, GLfloat width);
 void LS_deleteLineStrip(LS_LineStrip * lineStrip);
 
 

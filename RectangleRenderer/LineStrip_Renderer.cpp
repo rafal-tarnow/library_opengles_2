@@ -25,7 +25,7 @@ static const GLchar* fragment_shader_source =
                 "precision mediump float;                                   \n"
                 "                                                           \n"
                 "void main() {                                              \n"
-                "   gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);                \n"
+                "   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);                \n"
                 "}                                                          \n";
 
 static GLfloat rectangle_vertices[] = {
@@ -52,7 +52,7 @@ static GLint position_location;
 static GLuint shader_program;
 static int shaderInited = 0;
 
-GLuint LS_initShader()
+static GLuint initShader()
 {
     if(shaderInited == 0)
     {
@@ -77,8 +77,7 @@ void LS_initLineStrip(LS_LineStrip * lineStrip, float * verticlesTable, int tabl
 {
     if(shaderInited == 0)
     {
-        LOGD("ERROR shader not inited");
-        exit(-1);
+        initShader();
     }
 
     lineStrip->numberOfVerticles = tableSize/3;
@@ -86,9 +85,9 @@ void LS_initLineStrip(LS_LineStrip * lineStrip, float * verticlesTable, int tabl
 
 }
 
-void LS_drawLineStrip(LS_LineStrip * lineStrip)
+void LS_drawLineStrip(LS_LineStrip * lineStrip, GLfloat width)
 {
-    glLineWidth(10.0);
+    glLineWidth(width);
     glUseProgram(shader_program);
     {
         glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->projection));
