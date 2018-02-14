@@ -8,41 +8,46 @@ using namespace std;
 static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
 
 static const GLchar* vertex_shader_source =
-                "#version 100                           \n"
-                "attribute vec3 position;               \n"
-                "                                       \n"
-                "uniform mat4 model;                    \n"
-                "uniform mat4 view;                     \n"
-                "uniform mat4 projection;               \n"
-                "                                       \n"
-                "void main() {                          \n"
-                "   gl_Position =  projection * view * model * vec4(position, 1.0);  \n"
-                "}                                      \n";
+        "#version 100                           \n"
+        "attribute vec3 position;               \n"
+        "                                       \n"
+        "uniform mat4 model;                    \n"
+        "uniform mat4 view;                     \n"
+        "uniform mat4 projection;               \n"
+        "                                       \n"
+        "void main() {                          \n"
+        "   gl_Position =  projection * view * model * vec4(position, 1.0);  \n"
+        "}                                      \n";
 
 
 static const GLchar* fragment_shader_source =
-                "#version 100                                               \n"
-                "precision mediump float;                                   \n"
-                "                                                           \n"
-                "void main() {                                              \n"
-                "   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);                \n"
-                "}                                                          \n";
+        "#version 100                                               \n"
+        "precision mediump float;                                   \n"
+        "                                                           \n"
+        "void main() {                                              \n"
+        "   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);                \n"
+        "}                                                          \n";
 
 static GLfloat rectangle_vertices[] = {
-        1.0f,  5.0f, 0.0f,
-        4.0f, 4.0f, 0.0f,
-        8.0f, 1.0f, 0.0f,
+    1.0f,  5.0f, 0.0f,
+    4.0f, 4.0f, 0.0f,
+    8.0f, 1.0f, 0.0f,
 };
 
-static GLuint prepareVBO(const GLfloat * data, GLsizeiptr size){
+static GLuint generateVBO(){
     GLuint vbo;
-
     glGenBuffers(1,&vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     return vbo;
+}
+
+static void updateVBOdata(GLuint vbo, const GLfloat * data, GLsizeiptr size)
+{
+    if((size>0) && (data!=nullptr) && (vbo!=0))
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 }
 
 static GLint projectionMatrixLocation;
@@ -73,7 +78,7 @@ static GLuint initShader()
     return shader_program;
 }
 
-void LS_initLineStrip(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize)
+void LS_init(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize)
 {
     if(shaderInited == 0)
     {
@@ -81,11 +86,32 @@ void LS_initLineStrip(LS_LineStrip * lineStrip, float * verticlesTable, int tabl
     }
 
     lineStrip->numberOfVerticles = tableSize/3;
-    lineStrip->vbo_id = prepareVBO(verticlesTable, tableSize * sizeof(float));
+    lineStrip->vbo_id = generateVBO();
 
+    updateVBOdata(lineStrip->vbo_id, verticlesTable, tableSize * sizeof(float));
 }
 
-void LS_drawLineStrip(LS_LineStrip * lineStrip, GLfloat width)
+void LS_init(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize)
+{
+    if(shaderInited == 0)
+    {
+        initShader();
+    }
+
+    lineStrip->numberOfVerticles = tableSize;
+    lineStrip->vbo_id = generateVBO();
+
+    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4);
+}
+
+void LS_updateData(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize)
+{
+    lineStrip->numberOfVerticles = tableSize;
+    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4);
+}
+
+
+void LS_draw(LS_LineStrip * lineStrip, GLfloat width)
 {
     glLineWidth(width);
     glUseProgram(shader_program);
@@ -106,7 +132,7 @@ void LS_drawLineStrip(LS_LineStrip * lineStrip, GLfloat width)
     glUseProgram(0);
 }
 
-void LS_deleteLineStrip(LS_LineStrip * lineStrip)
+void LS_delete(LS_LineStrip * lineStrip)
 {
     glDeleteBuffers(1, &(lineStrip->vbo_id));
 }

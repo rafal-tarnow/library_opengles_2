@@ -7,8 +7,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 
-GLuint DE_initShader();
-
 typedef struct{
     GLuint vbo_id;
     GLuint texture_id;

@@ -66,7 +66,7 @@ static GLint textureUnitLocation;
 static GLuint shader_program;
 static int shaderInited = 0;
 
-GLuint DE_initShader(){
+static GLuint initShader(){
     if(shaderInited == 0)
     {
         shader_program = compileShaders(vertex_shader_source, fragment_shader_source);
@@ -92,8 +92,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat wid
 {
     if(shaderInited == 0)
     {
-        LOGD("ERROR shader not inited");
-        exit(-1);
+        initShader();
     }
 
     GLfloat width_2 = width/2.0f;
@@ -124,8 +123,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GL
 {
     if(shaderInited == 0)
     {
-        cout << "[ERROR] DE_initRectangle shader not inited" << endl;
-        exit(-1);
+        initShader();
     }
 
     GLfloat width_2 = width/2.0f;
@@ -156,8 +154,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GL
 {
     if(shaderInited == 0)
     {
-        cout << "[ERROR] DE_initRectangle shader not inited" << endl;
-        exit(-1);
+        initShader();
     }
 
     //TOP RIGHT VERTICES
@@ -185,8 +182,7 @@ void DE_initRectangle_1(DE_Rectangle * rectangle, GLuint textureId, GLfloat x_to
 {
     if(shaderInited == 0)
     {
-        cout << "[ERROR] DE_initRectangle shader not inited" << endl;
-        exit(-1);
+        initShader();
     }
 
     //TOP RIGHT VERTICES
