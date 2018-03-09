@@ -40,12 +40,12 @@ static GLuint generateVBO(){
     return vbo;
 }
 
-static void updateVBOdata(GLuint vbo, const GLfloat * data, GLsizeiptr size)
+static void updateVBOdata(GLuint vbo, const GLvoid * data, GLsizeiptr number_of_bytes)
 {
-    if((size>0) && (data!=nullptr) && (vbo!=0))
+    if((number_of_bytes>0) && (data!=nullptr) && (vbo!=0))
     {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, number_of_bytes, data, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
@@ -122,8 +122,9 @@ void LS_draw(LS_LineStrip * lineStrip, GLfloat width)
 
         glBindBuffer(GL_ARRAY_BUFFER, lineStrip->vbo_id);
         {
-            glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
             glEnableVertexAttribArray(position_location);
+            glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+
 
             glDrawArrays(GL_LINE_STRIP, 0, lineStrip->numberOfVerticles);
         }
