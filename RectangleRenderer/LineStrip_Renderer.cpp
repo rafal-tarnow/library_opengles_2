@@ -28,11 +28,6 @@ static const GLchar* fragment_shader_source =
         "   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);                \n"
         "}                                                          \n";
 
-static GLfloat rectangle_vertices[] = {
-    1.0f,  5.0f, 0.0f,
-    4.0f, 4.0f, 0.0f,
-    8.0f, 1.0f, 0.0f,
-};
 
 static GLuint generateVBO(){
     GLuint vbo;

@@ -1,4 +1,4 @@
-#include "TriangleStrip_Renderer.hpp"
+#include "LineStrip_Renderer.hpp"
 #include "../TextureManager/texture_manager.hpp"
 #include <iostream>
 #include "../../system_log.hpp"
@@ -23,10 +23,9 @@ static const GLchar* vertex_shader_source =
 static const GLchar* fragment_shader_source =
         "#version 100                                               \n"
         "precision mediump float;                                   \n"
-        "uniform vec4 colour;                                       \n"
         "                                                           \n"
         "void main() {                                              \n"
-        "   gl_FragColor = colour;                \n"
+        "   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);                \n"
         "}                                                          \n";
 
 static GLfloat rectangle_vertices[] = {
@@ -35,30 +34,28 @@ static GLfloat rectangle_vertices[] = {
     8.0f, 1.0f, 0.0f,
 };
 
+static GLuint generateVBO(){
+    GLuint vbo;
+    glGenBuffers(1,&vbo);
+    return vbo;
+}
 
+static void updateVBOdata(GLuint vbo, const GLvoid * data, GLsizeiptr number_of_bytes)
+{
+    if((number_of_bytes>0) && (data!=nullptr) && (vbo!=0))
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, number_of_bytes, data, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+}
 
 static GLint projectionMatrixLocation;
-static GLint colourLocation;
 static GLint viewMatrixLocation;
 static GLint modelMatrixLocation;
 static GLint position_location;
 static GLuint shader_program;
 static int shaderInited = 0;
-
-
-static GLuint prepareVBO(const GLfloat * data, GLsizeiptr size){
-    GLuint vbo;
-
-    glGenBuffers(1,&vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    {
-        glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(position_location);
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    return vbo;
-}
 
 static GLuint initShader()
 {
@@ -71,55 +68,72 @@ static GLuint initShader()
         projectionMatrixLocation = glGetUniformLocation(shader_program, "projection");
         viewMatrixLocation = glGetUniformLocation(shader_program, "view");
         modelMatrixLocation = glGetUniformLocation(shader_program, "model");
-        colourLocation = glGetUniformLocation(shader_program, "colour");
 
         shaderInited = 1;
+    }
+    else
+    {
+        cout << "[WARNING] shader arlady compiled" << endl;
     }
     return shader_program;
 }
 
-void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, float * verticlesTable, int tableSize, glm::vec4 textColor)
+void TR_init(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize)
 {
     if(shaderInited == 0)
     {
         initShader();
     }
 
-    glUseProgram(shader_program);
-    {
-         glUniform4fv(colourLocation,1,glm::value_ptr(textColor));
-    }
-    glUseProgram(0);
+    lineStrip->numberOfVerticles = tableSize/3;
+    lineStrip->vbo_id = generateVBO();
 
-    triangleStrip->numberOfVerticles = tableSize/3;
-    triangleStrip->vbo_id = prepareVBO(verticlesTable, tableSize * sizeof(float));
+    updateVBOdata(lineStrip->vbo_id, verticlesTable, tableSize * sizeof(float));
+}
+
+void TR_init(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize)
+{
+    if(shaderInited == 0)
+    {
+        initShader();
+    }
+
+    lineStrip->numberOfVerticles = tableSize;
+    lineStrip->vbo_id = generateVBO();
+
+    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4);
+}
+
+void TR_updateData(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize)
+{
+    lineStrip->numberOfVerticles = tableSize;
+    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4);
 }
 
 
-
-
-
-void TS_drawTriangleStrip(TS_TriangleStrip * triangleStrip)
+void TR_draw(LS_LineStrip * lineStrip, GLfloat width)
 {
-    glLineWidth(10.0);
+    glLineWidth(width);
     glUseProgram(shader_program);
     {
-        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(triangleStrip->projection));
-        glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(triangleStrip->view));
-        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(triangleStrip->model));
+        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->projection));
+        glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->view));
+        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->model));
 
-
-        glBindBuffer(GL_ARRAY_BUFFER, triangleStrip->vbo_id);
+        glBindBuffer(GL_ARRAY_BUFFER, lineStrip->vbo_id);
         {
+            glEnableVertexAttribArray(position_location);
             glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-            glDrawArrays(GL_TRIANGLE_STRIP, 0, triangleStrip->numberOfVerticles);
+
+
+            glDrawArrays(GL_LINE_STRIP, 0, lineStrip->numberOfVerticles);
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     glUseProgram(0);
 }
 
-void TS_deleteTriangleStrip(TS_TriangleStrip * lineStrip)
+void TR_delete(LS_LineStrip * lineStrip)
 {
     glDeleteBuffers(1, &(lineStrip->vbo_id));
 }
