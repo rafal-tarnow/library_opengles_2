@@ -18,8 +18,8 @@ typedef struct{
 } LS_LineStrip;
 
 
-void LS_init(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize);
-void LS_init(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize);
+void LS_init(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize, glm::vec4 color);
+void LS_init(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize, glm::vec4 color);
 void LS_updateData(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize);
 void LS_draw(LS_LineStrip * lineStrip, GLfloat width);
 void LS_delete(LS_LineStrip * lineStrip);

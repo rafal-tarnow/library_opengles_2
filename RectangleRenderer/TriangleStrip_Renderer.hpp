@@ -20,7 +20,8 @@ typedef struct{
 } TS_TriangleStrip;
 
 
-void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, float * verticlesTable, int tableSize, glm::vec4 textColor);
+void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, float * verticlesTable, int tableSize, glm::vec4 color);
+void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, glm::vec3 * verticlesTable, int tableSize, glm::vec4 color);
 void TS_drawTriangleStrip(TS_TriangleStrip * triangleStrip);
 void TS_deleteTriangleStrip(TS_TriangleStrip * triangleStrip);
 

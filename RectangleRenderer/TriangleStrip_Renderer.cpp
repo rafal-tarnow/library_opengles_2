@@ -26,7 +26,7 @@ static const GLchar* fragment_shader_source =
         "uniform vec4 colour;                                       \n"
         "                                                           \n"
         "void main() {                                              \n"
-        "   gl_FragColor = colour;                \n"
+        "   gl_FragColor = colour;                                  \n"
         "}                                                          \n";
 
 static GLfloat rectangle_vertices[] = {
@@ -46,20 +46,21 @@ static GLuint shader_program;
 static int shaderInited = 0;
 
 
-static GLuint prepareVBO(const GLfloat * data, GLsizeiptr size){
+static GLuint generateVBO(){
     GLuint vbo;
-
     glGenBuffers(1,&vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    {
-        glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(position_location);
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
     return vbo;
 }
 
+static void updateVBOdata(GLuint vbo, const GLvoid * data, GLsizeiptr number_of_bytes)
+{
+    if((number_of_bytes>0) && (data!=nullptr) && (vbo!=0))
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, number_of_bytes, data, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+}
 static GLuint initShader()
 {
     if(shaderInited == 0)
@@ -78,7 +79,7 @@ static GLuint initShader()
     return shader_program;
 }
 
-void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, float * verticlesTable, int tableSize, glm::vec4 textColor)
+void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, float * verticlesTable, int tableSize, glm::vec4 color)
 {
     if(shaderInited == 0)
     {
@@ -87,16 +88,34 @@ void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, float * verticlesTab
 
     glUseProgram(shader_program);
     {
-         glUniform4fv(colourLocation,1,glm::value_ptr(textColor));
+        glUniform4fv(colourLocation,1,glm::value_ptr(color));
     }
     glUseProgram(0);
 
     triangleStrip->numberOfVerticles = tableSize/3;
-    triangleStrip->vbo_id = prepareVBO(verticlesTable, tableSize * sizeof(float));
+    triangleStrip->vbo_id = generateVBO();
+
+    updateVBOdata(triangleStrip->vbo_id, verticlesTable, tableSize * sizeof(float));
 }
 
+void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, glm::vec3 * verticlesTable, int tableSize, glm::vec4 textColor)
+{
+    if(shaderInited == 0)
+    {
+        initShader();
+    }
 
+    glUseProgram(shader_program);
+    {
+        glUniform4fv(colourLocation,1,glm::value_ptr(textColor));
+    }
+    glUseProgram(0);
 
+    triangleStrip->numberOfVerticles = tableSize;
+    triangleStrip->vbo_id = generateVBO();
+
+    updateVBOdata(triangleStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4);
+}
 
 
 void TS_drawTriangleStrip(TS_TriangleStrip * triangleStrip)

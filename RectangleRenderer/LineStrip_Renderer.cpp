@@ -23,9 +23,10 @@ static const GLchar* vertex_shader_source =
 static const GLchar* fragment_shader_source =
         "#version 100                                               \n"
         "precision mediump float;                                   \n"
+        "uniform vec4 colour;                                       \n"
         "                                                           \n"
         "void main() {                                              \n"
-        "   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);                \n"
+        "   gl_FragColor = colour;                                  \n"
         "}                                                          \n";
 
 
@@ -49,6 +50,7 @@ static GLint projectionMatrixLocation;
 static GLint viewMatrixLocation;
 static GLint modelMatrixLocation;
 static GLint position_location;
+static GLint colourLocation;
 static GLuint shader_program;
 static int shaderInited = 0;
 
@@ -63,6 +65,7 @@ static GLuint initShader()
         projectionMatrixLocation = glGetUniformLocation(shader_program, "projection");
         viewMatrixLocation = glGetUniformLocation(shader_program, "view");
         modelMatrixLocation = glGetUniformLocation(shader_program, "model");
+        colourLocation = glGetUniformLocation(shader_program, "colour");
 
         shaderInited = 1;
     }
@@ -73,12 +76,18 @@ static GLuint initShader()
     return shader_program;
 }
 
-void LS_init(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize)
+void LS_init(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize, glm::vec4 color)
 {
     if(shaderInited == 0)
     {
         initShader();
     }
+
+    glUseProgram(shader_program);
+    {
+        glUniform4fv(colourLocation,1,glm::value_ptr(color));
+    }
+    glUseProgram(0);
 
     lineStrip->numberOfVerticles = tableSize/3;
     lineStrip->vbo_id = generateVBO();
@@ -86,12 +95,18 @@ void LS_init(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize)
     updateVBOdata(lineStrip->vbo_id, verticlesTable, tableSize * sizeof(float));
 }
 
-void LS_init(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize)
+void LS_init(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize, glm::vec4 color)
 {
     if(shaderInited == 0)
     {
         initShader();
     }
+
+    glUseProgram(shader_program);
+    {
+        glUniform4fv(colourLocation,1,glm::value_ptr(color));
+    }
+    glUseProgram(0);
 
     lineStrip->numberOfVerticles = tableSize;
     lineStrip->vbo_id = generateVBO();
