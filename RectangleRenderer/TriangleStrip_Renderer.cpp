@@ -15,8 +15,11 @@ static const GLchar* vertex_shader_source =
         "uniform mat4 view;                     \n"
         "uniform mat4 projection;               \n"
         "                                       \n"
+        "varying vec2 v_TexCoordinate;          \n"
+        "                                       \n"
         "void main() {                          \n"
         "   gl_Position =  projection * view * model * vec4(position, 1.0);  \n"
+        "   v_TexCoordinate = (position.xy)/10.0;     \n"
         "}                                      \n";
 
 
@@ -25,15 +28,13 @@ static const GLchar* fragment_shader_source =
         "precision mediump float;                                   \n"
         "uniform vec4 colour;                                       \n"
         "                                                           \n"
+        "varying vec2 v_TexCoordinate;                              \n"
+        "uniform sampler2D textureUnit;                             \n"
+        "                                                           \n"
         "void main() {                                              \n"
-        "   gl_FragColor = colour;                                  \n"
+        "   //gl_FragColor = colour;                                \n"
+        "   gl_FragColor = texture2D(textureUnit,v_TexCoordinate);  \n"
         "}                                                          \n";
-
-static GLfloat rectangle_vertices[] = {
-    1.0f,  5.0f, 0.0f,
-    4.0f, 4.0f, 0.0f,
-    8.0f, 1.0f, 0.0f,
-};
 
 
 
@@ -42,6 +43,7 @@ static GLint colourLocation;
 static GLint viewMatrixLocation;
 static GLint modelMatrixLocation;
 static GLint position_location;
+static GLint textureUnitLocation;
 static GLuint shader_program;
 static int shaderInited = 0;
 
@@ -73,6 +75,7 @@ static GLuint initShader()
         viewMatrixLocation = glGetUniformLocation(shader_program, "view");
         modelMatrixLocation = glGetUniformLocation(shader_program, "model");
         colourLocation = glGetUniformLocation(shader_program, "colour");
+              textureUnitLocation = glGetUniformLocation (shader_program, "textureUnit" );
 
         shaderInited = 1;
     }
@@ -98,7 +101,7 @@ void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, float * verticlesTab
     updateVBOdata(triangleStrip->vbo_id, verticlesTable, tableSize * sizeof(float));
 }
 
-void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, glm::vec3 * verticlesTable, int tableSize, glm::vec4 textColor)
+void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, glm::vec3 * verticlesTable, int tableSize, glm::vec4 color)
 {
     if(shaderInited == 0)
     {
@@ -107,12 +110,33 @@ void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, glm::vec3 * verticle
 
     glUseProgram(shader_program);
     {
-        glUniform4fv(colourLocation,1,glm::value_ptr(textColor));
+        glUniform4fv(colourLocation,1,glm::value_ptr(color));
     }
     glUseProgram(0);
 
     triangleStrip->numberOfVerticles = tableSize;
     triangleStrip->vbo_id = generateVBO();
+
+    updateVBOdata(triangleStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4);
+}
+
+void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, glm::vec3 * verticlesTable, int tableSize, GLuint textureId)
+{
+    if(shaderInited == 0)
+    {
+        initShader();
+    }
+
+    glUseProgram(shader_program);
+    {
+        glm::vec4 defaultColor(0.0f, 1.0f, 0.0f, 1.0f);
+        glUniform4fv(colourLocation,1,glm::value_ptr(defaultColor));
+    }
+    glUseProgram(0);
+
+    triangleStrip->numberOfVerticles = tableSize;
+    triangleStrip->vbo_id = generateVBO();
+    triangleStrip->texture_id = textureId;
 
     updateVBOdata(triangleStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4);
 }
@@ -127,6 +151,9 @@ void TS_drawTriangleStrip(TS_TriangleStrip * triangleStrip)
         glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(triangleStrip->view));
         glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(triangleStrip->model));
 
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, triangleStrip->texture_id);
+        glUniform1i(textureUnitLocation, GL_TEXTURE0);
 
         glBindBuffer(GL_ARRAY_BUFFER, triangleStrip->vbo_id);
         {
