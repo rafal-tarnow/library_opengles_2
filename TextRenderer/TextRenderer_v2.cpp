@@ -265,7 +265,7 @@ void TextRenderer_v2::loadCommon(FT_Library &ft, FT_Face &face, GLuint &fontSize
 
     for(char c = ' '; c <= 'z'; c++)
     {
-
+        //LOAD ONE CHAR DATA
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
         {
             std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
@@ -283,6 +283,8 @@ void TextRenderer_v2::loadCommon(FT_Library &ft, FT_Face &face, GLuint &fontSize
         cout << "face->glyph->bitmap.width = " << face->glyph->bitmap.width << endl;
         cout << "face->glyph->bitmap.rows = " << face->glyph->bitmap.rows << endl;
 
+
+        //UPDATE MAX GLYPH WIDTH and MAX GLYPH HEIGHT
         if(face->glyph->bitmap.rows > max_rows){
             max_rows = face->glyph->bitmap.rows;
         }
@@ -306,8 +308,8 @@ void TextRenderer_v2::loadCommon(FT_Library &ft, FT_Face &face, GLuint &fontSize
         glGenTextures(1, &TextureID);
         glBindTexture(GL_TEXTURE_2D, TextureID);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, charData_tmp.glyph_bitmap_width, charData_tmp.glyph_bitmap_rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, charData_tmp.glyph_bitmap_buffer);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glBindTexture (GL_TEXTURE_2D, 0);

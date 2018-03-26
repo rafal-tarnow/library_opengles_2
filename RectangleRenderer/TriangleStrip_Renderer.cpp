@@ -19,7 +19,7 @@ static const GLchar* vertex_shader_source =
         "                                       \n"
         "void main() {                          \n"
         "   gl_Position =  projection * view * model * vec4(position, 1.0);  \n"
-        "   v_TexCoordinate = (position.xy)/10.0;     \n"
+        "   v_TexCoordinate = (position.xy)/5.0;     \n"
         "}                                      \n";
 
 
