@@ -16,6 +16,8 @@ const int MAX_STRING_LENGHT = 5000;
 
 #warning "Przerobic TextRenderer_v2 na singletona"
 
+
+
 class TextRenderer_v2
 {
 public:
@@ -54,29 +56,36 @@ private:
 
 
 
-
     typedef struct{
         GLuint characterTextureID;
-        GLfloat glyph_bitmap_rows;
-        GLfloat glyph_bitmap_width;
+        unsigned int glyph_bitmap_rows;
+        unsigned int glyph_bitmap_width;
         unsigned char*  glyph_bitmap_buffer = nullptr;
-        GLfloat glyph_bitmap_left;
-        GLfloat glyph_bitmap_top;
+        FT_Int glyph_bitmap_left;
+        FT_Int glyph_bitmap_top;
         GLfloat glyph_advance_x;
+    }CharacterData;
+    std::map<char, CharacterData> charactersMap;
+
+    typedef struct{
+        unsigned int glyph_bitmap_width; //converted
+        FT_Int glyph_bitmap_left;   //converted
+        FT_Int glyph_bitmap_top;    //converted
+        unsigned int glyph_bitmap_rows; //converted
+        GLfloat glyph_advance_x;
+
         GLfloat u_coord_right;
         GLfloat u_coord_left;
         GLfloat v_coord_top;
         GLfloat v_coord_bottom;
-    }CharacterData;
-
-    std::map<char, CharacterData> charactersMap;
-
+    }AtlasGlyphData;
 
     struct {
         unsigned int atlas_width;
         unsigned int atlas_rows;
         GLuint glyphAtlasTextureId;
-    } GlyphAtlasData;
+        std::map<char, AtlasGlyphData> textureCoordinates;
+    }Atlas;
 
     struct {
         GLuint textBufferTexture;
