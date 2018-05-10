@@ -7,7 +7,7 @@ using namespace std;
 
 static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
 
-static const GLchar* vertex_shader_source =
+static const GLchar* texture_vertex_shader_source =
         "#version 100                           \n"
         "//Rectangle_Renderer vertex shader     \n"
         "attribute vec3 position;               \n"
@@ -24,7 +24,7 @@ static const GLchar* vertex_shader_source =
         "}                                      \n";
 
 
-static const GLchar* fragment_shader_source =
+static const GLchar* texture_fragment_shader_source =
         "#version 100                                               \n"
         "//Rectangle_Renderer fragmet shader                        \n"
         "precision mediump float;                                   \n"
@@ -32,12 +32,35 @@ static const GLchar* fragment_shader_source =
         "uniform sampler2D textureUnit;                             \n"
         "                                                           \n"
         "void main() {                                              \n"
-        "   vec4 color = texture2D(textureUnit,v_TexCoordinate);    \n"
-        "   //if (color.a < 0.9)                                    \n"
-        "   //   discard;                                           \n"
-        "   //color.a = 0.5;                                          \n"
-        "   gl_FragColor = color;                                   \n"
+        "   gl_FragColor = texture2D(textureUnit,v_TexCoordinate);    \n"
         "}                                                          \n";
+
+
+static const GLchar* colour_vertex_shader_source =
+        "#version 100                           \n"
+        "//Rectangle_Renderer vertex shader     \n"
+        "attribute vec3 position;               \n"
+        "attribute vec2 texCoord;               \n"
+        "                                       \n"
+        "uniform mat4 model;                    \n"
+        "uniform mat4 view;                     \n"
+        "uniform mat4 projection;               \n"
+        "                                       \n"
+        "void main() {                          \n"
+        "   gl_Position =  projection * view * model * vec4(position, 1.0);  \n"
+        "}                                      \n";
+
+
+static const GLchar* colour_fragment_shader_source =
+        "#version 100                                               \n"
+        "//Rectangle_Renderer fragmet shader                        \n"
+        "precision mediump float;                                   \n"
+        "                                                           \n"
+        "void main() {                                              \n"
+        "   gl_FragColor = vec4(1.0,0.0,0.0,1.0);    \n"
+        "}                                                          \n";
+
+
 
 static GLfloat rectangle_vertices[] = {
     1.0f,  1.0f, 0.0f,      1.0f, 1.0f,
@@ -57,27 +80,51 @@ static GLuint prepareVBO(const GLfloat * data, GLsizeiptr size){
     return vbo;
 }
 
-static GLint projectionMatrixLocation;
-static GLint viewMatrixLocation;
-static GLint modelMatrixLocation;
-static GLint position_location;
-static GLint texCoord_attrib_location;
-static GLint textureUnitLocation;
-static GLuint shader_program;
+
+//TEXTURE PROGRAM LOCATIONS
+static GLint position_location_tex;
+static GLint texCoord_attrib_location_tex;
+static GLint textureUnitLocation_tex;
+static GLint projectionMatrixLocation_tex;
+static GLint viewMatrixLocation_tex;
+static GLint modelMatrixLocation_tex;
+
+//COLOUR PROGRAM LOCATIONS
+static GLint position_location_col;
+static GLint projectionMatrixLocation_col;
+static GLint viewMatrixLocation_col;
+static GLint modelMatrixLocation_col;
+
+static GLuint texture_shader_program;
+static GLuint colour_shader_program;
 static int shaderInited = 0;
 
-static GLuint initShader(){
+void initShader(){
     if(shaderInited == 0)
     {
-        shader_program = compileShaders(vertex_shader_source, fragment_shader_source);
+        //TEXTURE PROGRAM
+        {
+            texture_shader_program = compileShaders(texture_vertex_shader_source, texture_fragment_shader_source);
 
-        position_location = glGetAttribLocation(shader_program, "position");
-        texCoord_attrib_location = glGetAttribLocation(shader_program,"texCoord");
-        textureUnitLocation = glGetUniformLocation (shader_program, "textureUnit" );
+            position_location_tex = glGetAttribLocation(texture_shader_program, "position");
+            texCoord_attrib_location_tex = glGetAttribLocation(texture_shader_program,"texCoord");
+            textureUnitLocation_tex = glGetUniformLocation (texture_shader_program, "textureUnit" );
 
-        projectionMatrixLocation = glGetUniformLocation(shader_program, "projection");
-        viewMatrixLocation = glGetUniformLocation(shader_program, "view");
-        modelMatrixLocation = glGetUniformLocation(shader_program, "model");
+            projectionMatrixLocation_tex = glGetUniformLocation(texture_shader_program, "projection");
+            viewMatrixLocation_tex = glGetUniformLocation(texture_shader_program, "view");
+            modelMatrixLocation_tex = glGetUniformLocation(texture_shader_program, "model");
+        }
+
+        //COLOUR PROGRAM
+        {
+            colour_shader_program = compileShaders(colour_vertex_shader_source, colour_fragment_shader_source);
+
+            position_location_col = glGetAttribLocation(colour_shader_program, "position");
+
+            projectionMatrixLocation_col = glGetUniformLocation(colour_shader_program, "projection");
+            viewMatrixLocation_col = glGetUniformLocation(colour_shader_program, "view");
+            modelMatrixLocation_col = glGetUniformLocation(colour_shader_program, "model");
+        }
 
         shaderInited = 1;
     }
@@ -85,7 +132,6 @@ static GLuint initShader(){
     {
         cout << "[WARNING] shader arlady compiled" << endl;
     }
-    return shader_program;
 }
 
 void DE_initRectangle(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat width, GLfloat height, GLfloat z)
@@ -150,6 +196,71 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GL
     rectangle->vbo_id = prepareVBO(rectangle_vertices, sizeof(rectangle_vertices));
 }
 
+void DE_initRectangle(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec3 position, glm::vec2 dimm)
+{
+    if(shaderInited == 0)
+    {
+        initShader();
+    }
+
+    GLfloat width_2 = dimm.x/2.0f;
+    GLfloat height_2 = dimm.y/2.0f;
+    GLfloat z = 0;
+
+    //TOP RIGHT VERTICES
+    rectangle_vertices[0] = width_2 + position.x;
+    rectangle_vertices[1] = height_2 + position.y;
+    rectangle_vertices[2] = position.z;
+    //BOTTOM RIGHT VERTICES
+    rectangle_vertices[5] = width_2 + position.x;
+    rectangle_vertices[6] = -height_2 + position.y;
+    rectangle_vertices[7] = position.z;
+    //BOTTOM LEFT VERTICES
+    rectangle_vertices[10] = -width_2 + position.x;
+    rectangle_vertices[11] = -height_2 + position.y;
+    rectangle_vertices[12] = position.z;
+    //
+    rectangle_vertices[15] = -width_2 + position.x;
+    rectangle_vertices[16] = height_2 + position.y;
+    rectangle_vertices[17] = position.z;
+
+    rectangle->texture_id = 0;
+    rectangle->colour = colour;
+    rectangle->vbo_id = prepareVBO(rectangle_vertices, sizeof(rectangle_vertices));
+}
+
+void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, glm::vec3 position, glm::vec2 dimm)
+{
+    if(shaderInited == 0)
+    {
+        initShader();
+    }
+
+    GLfloat width_2 = dimm.x/2.0f;
+    GLfloat height_2 = dimm.y/2.0f;
+    GLfloat z = 0;
+
+    //TOP RIGHT VERTICES
+    rectangle_vertices[0] = width_2 + position.x;
+    rectangle_vertices[1] = height_2 + position.y;
+    rectangle_vertices[2] = position.z;
+    //BOTTOM RIGHT VERTICES
+    rectangle_vertices[5] = width_2 + position.x;
+    rectangle_vertices[6] = -height_2 + position.y;
+    rectangle_vertices[7] = position.z;
+    //BOTTOM LEFT VERTICES
+    rectangle_vertices[10] = -width_2 + position.x;
+    rectangle_vertices[11] = -height_2 + position.y;
+    rectangle_vertices[12] = position.z;
+    //
+    rectangle_vertices[15] = -width_2 + position.x;
+    rectangle_vertices[16] = height_2 + position.y;
+    rectangle_vertices[17] = position.z;
+
+    rectangle->texture_id = TextureManager::getTextureId(textureFilename);
+    rectangle->vbo_id = prepareVBO(rectangle_vertices, sizeof(rectangle_vertices));
+}
+
 void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GLfloat x_top_left, GLfloat y_top_left, GLfloat x_bottom_right, GLfloat y_bottom_right, GLfloat z)
 {
     if(shaderInited == 0)
@@ -207,29 +318,50 @@ void DE_initRectangle_1(DE_Rectangle * rectangle, GLuint textureId, GLfloat x_to
 }
 
 void DE_drawRectangle(DE_Rectangle * rectangle){
-    glUseProgram(shader_program);
+    if(rectangle->texture_id != 0)
     {
-        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(rectangle->projection));
-        glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(rectangle->view));
-        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(rectangle->model));
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, rectangle->texture_id);
-        glUniform1i(textureUnitLocation, GL_TEXTURE0);
-
-        glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
+        glUseProgram(texture_shader_program);
         {
-            glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-            glEnableVertexAttribArray(position_location);
+            glUniformMatrix4fv(projectionMatrixLocation_tex, 1, GL_FALSE, glm::value_ptr(rectangle->projection));
+            glUniformMatrix4fv(viewMatrixLocation_tex, 1, GL_FALSE, glm::value_ptr(rectangle->view));
+            glUniformMatrix4fv(modelMatrixLocation_tex, 1, GL_FALSE, glm::value_ptr(rectangle->model));
 
-            glVertexAttribPointer(texCoord_attrib_location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-            glEnableVertexAttribArray(texCoord_attrib_location);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, rectangle->texture_id);
+            glUniform1i(textureUnitLocation_tex, GL_TEXTURE0);
 
-            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+            glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
+            {
+                glVertexAttribPointer(position_location_tex, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+                glEnableVertexAttribArray(position_location_tex);
+
+                glVertexAttribPointer(texCoord_attrib_location_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+                glEnableVertexAttribArray(texCoord_attrib_location_tex);
+
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+            }
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glUseProgram(0);
+    }else
+    {
+        glUseProgram(colour_shader_program);
+        {
+            glUniformMatrix4fv(projectionMatrixLocation_col, 1, GL_FALSE, glm::value_ptr(rectangle->projection));
+            glUniformMatrix4fv(viewMatrixLocation_col, 1, GL_FALSE, glm::value_ptr(rectangle->view));
+            glUniformMatrix4fv(modelMatrixLocation_col, 1, GL_FALSE, glm::value_ptr(rectangle->model));
+
+            glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
+            {
+                glVertexAttribPointer(position_location_col, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+                glEnableVertexAttribArray(position_location_col);
+
+                glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+            }
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
+        glUseProgram(0);
     }
-    glUseProgram(0);
 }
 
 void DE_deleteRectangle(DE_Rectangle * rectangle){

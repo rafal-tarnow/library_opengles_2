@@ -19,6 +19,7 @@ add_library (library_opengles_2 STATIC
     RectangleRenderer/Triangle_Renderer.cpp
     RectangleRenderer/TriangleStrip_Renderer.cpp
     TextureManager/texture_manager.cpp
+    ShaderManager/shader_manager.cpp
     RenderableObjects/GLSLShader.cpp
     RenderableObjects/RenderableObject_gles2.cpp
     RenderableObjects/SimpleObjects/GridLines.cpp
