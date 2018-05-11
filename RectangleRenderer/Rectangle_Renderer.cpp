@@ -261,6 +261,38 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, gl
     rectangle->vbo_id = prepareVBO(rectangle_vertices, sizeof(rectangle_vertices));
 }
 
+void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 position, glm::vec2 dimm)
+{
+    if(shaderInited == 0)
+    {
+        initShader();
+    }
+
+    GLfloat width_2 = dimm.x/2.0f;
+    GLfloat height_2 = dimm.y/2.0f;
+    GLfloat z = 0;
+
+    //TOP RIGHT VERTICES
+    rectangle_vertices[0] = width_2 + position.x;
+    rectangle_vertices[1] = height_2 + position.y;
+    rectangle_vertices[2] = position.z;
+    //BOTTOM RIGHT VERTICES
+    rectangle_vertices[5] = width_2 + position.x;
+    rectangle_vertices[6] = -height_2 + position.y;
+    rectangle_vertices[7] = position.z;
+    //BOTTOM LEFT VERTICES
+    rectangle_vertices[10] = -width_2 + position.x;
+    rectangle_vertices[11] = -height_2 + position.y;
+    rectangle_vertices[12] = position.z;
+    //
+    rectangle_vertices[15] = -width_2 + position.x;
+    rectangle_vertices[16] = height_2 + position.y;
+    rectangle_vertices[17] = position.z;
+
+    rectangle->texture_id = textureId;
+    rectangle->vbo_id = prepareVBO(rectangle_vertices, sizeof(rectangle_vertices));
+}
+
 void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GLfloat x_top_left, GLfloat y_top_left, GLfloat x_bottom_right, GLfloat y_bottom_right, GLfloat z)
 {
     if(shaderInited == 0)
