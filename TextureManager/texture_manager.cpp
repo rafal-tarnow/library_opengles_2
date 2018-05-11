@@ -1,4 +1,5 @@
 #include "texture_manager.hpp"
+#include "../Resources/Resources.hpp"
 
 #include <SOIL.h>
 
@@ -10,7 +11,8 @@ GLuint TextureManager::getTextureId(string fileName){
         return mapaTesktur.at(fileName);
     }else{
         //w przeciwnym wypadku utworz nowa teksture
-        mapaTesktur[fileName] = SOIL_load_OGL_texture(fileName.c_str(), 4,0,SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
+        Resource imageResource(fileName);
+        mapaTesktur[fileName] = SOIL_load_OGL_texture_from_memory(imageResource.getData(), imageResource.getSize(), 4,0,SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
         return mapaTesktur.at(fileName);
     }
     return 0;
@@ -18,6 +20,6 @@ GLuint TextureManager::getTextureId(string fileName){
 
 
 void TextureManager::deleteAllTextures(){
-    //TODO zrobic usuwanie tekstur
+#warning "TODO zrobic usuwanie tekstur"
       //glDeleteTextures(1)
 }

@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.4.1)
 
 project(library_opengles_2)
 
-
 include_directories(
     TextRenderer
     RectangleRenderer
@@ -23,4 +22,6 @@ add_library (library_opengles_2 STATIC
     RenderableObjects/GLSLShader.cpp
     RenderableObjects/RenderableObject_gles2.cpp
     RenderableObjects/SimpleObjects/GridLines.cpp
+    Resources/Resources.cpp
     )
+
