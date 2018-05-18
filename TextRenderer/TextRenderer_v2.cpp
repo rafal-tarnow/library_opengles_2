@@ -129,8 +129,8 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y){
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
         //<<<<<<< HEAD
-        glActiveTexture(GL_TEXTURE1);
-        glUniform1i(textureUnitLocation, 1);
+        glActiveTexture(GL_TEXTURE0);
+        glUniform1i(textureUnitLocation, 0);
         glBindTexture(GL_TEXTURE_2D, atlas.glyphAtlasTextureId);
         //=======
         glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
