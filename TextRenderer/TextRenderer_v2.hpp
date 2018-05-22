@@ -35,6 +35,7 @@ public:
     unsigned int atlas_width;
     unsigned int atlas_rows;
     GLuint glyphAtlasTextureId;
+
     std::map<char, GlyphData> glyph_map;
 };
 
@@ -60,23 +61,16 @@ private:
     GLuint prepareVBO(const GLfloat * data, GLsizeiptr size);
 
     GLfloat verticles_table[20*MAX_STRING_LENGHT]= {
-        107.0f, 99.0f, 0.0f,    1.0f,0.0f,
-        107.0f, 0.0f, 0.0f,    1.0f,1.0f,
+        0.0f, 0.0f, 0.0f,   1.0f,0.0f,
+        0.0f, 0.0f, 0.0f,   1.0f,1.0f,
         0.0f, 0.0f, 0.0f,   0.0f,1.0f,
-        0.0f, 99.0f, 0.0f,    0.0f,0.0f
+        0.0f, 0.0f, 0.0f,   0.0f,0.0f
     };
 
     GLuint indices[6*MAX_STRING_LENGHT] = {
         0, 1, 2,    1, 2, 3,
         4, 5, 6,    5, 6, 7
     };
-
-    GLuint vbo;
-    GLint position_location;
-    GLint texCoord_attrib_location;
-    GLint textureUnitLocation;
-
-
 
     typedef struct{
         GLuint characterTextureID;
@@ -87,6 +81,7 @@ private:
         FT_Int glyph_bitmap_top;
         FT_Pos glyph_advance_x;
     }CharacterData;
+
     std::map<char, CharacterData> charactersMap;
 
 
@@ -97,16 +92,30 @@ private:
         char * textBuffer;
     }TextData;
 
-    GLint textColourLocation;
-    GLint projectionMatrixLocation;
+
     CharacterData charData_tmp;
     std::string::const_iterator c;
 
-    GLfloat current_viewport_width_in_pixels;
-    GLfloat current_viewport_height_in_pixels;
+    glm::vec4 viewport = glm::vec4(0,0,0,0);
 
     GLuint EBO;
+    GLuint vbo;
 
     std::string previous_string;
+
+
+    //GOODS
+    glm::vec4 mTextColour;
+    glm::mat4 mProjection;
+
+    //STATICS
+    static GLuint shader_program;
+    static GLint position_location;
+    static GLint texCoord_attrib_location;
+    static GLint textureUnitLocation;
+    static GLint textColourLocation;
+    static GLint projectionMatrixLocation;
+
+
 };
 

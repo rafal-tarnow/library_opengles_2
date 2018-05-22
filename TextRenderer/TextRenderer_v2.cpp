@@ -10,10 +10,6 @@
 
 using namespace std;
 
-static GLuint shader_program;
-
-static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
-static void drawGlyphToConsole(FT_Face &face);
 
 static const GLchar* vertex_shader_source =
         "#version 100                               \n"
@@ -45,29 +41,38 @@ static const GLchar* fragment_shader_source =
         "   gl_FragColor = textColor * sampled ;     \n"
         "}                                                      \n";
 
+GLuint TextRenderer_v2::shader_program = 0;
+GLint TextRenderer_v2::position_location;
+GLint TextRenderer_v2::texCoord_attrib_location;
+GLint TextRenderer_v2::textureUnitLocation;
+GLint TextRenderer_v2::textColourLocation;
+GLint TextRenderer_v2::projectionMatrixLocation;
+
+static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
+static void drawGlyphToConsole(FT_Face &face);
 
 
-TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels, glm::vec4 textColor){
 
-    current_viewport_width_in_pixels = viewport_width_in_pixels;
-    current_viewport_height_in_pixels = viewport_height_in_pixels;
+TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels, glm::vec4 txtColor)
+{
+    mTextColour = txtColor;
 
+    viewport.z = viewport_width_in_pixels;
+    viewport.w = viewport_height_in_pixels;
 
-    shader_program = compileShaders(vertex_shader_source, fragment_shader_source);
+    mProjection = glm::ortho(static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.z), static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.w));
 
-    position_location = glGetAttribLocation(shader_program, "position");
-    texCoord_attrib_location = glGetAttribLocation(shader_program,"texCoord");
-    textureUnitLocation = glGetUniformLocation (shader_program, "textureUnit" );
-    textColourLocation = glGetUniformLocation(shader_program, "textColor");
-
-
-    projectionMatrixLocation = glGetUniformLocation(shader_program, "projection");
-    glUseProgram(shader_program);
+    if(shader_program == 0)
     {
-        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(glm::ortho(static_cast<GLfloat>(0), static_cast<GLfloat>(viewport_width_in_pixels), static_cast<GLfloat>(0), static_cast<GLfloat>(viewport_height_in_pixels))));
-        glUniform4fv(textColourLocation,1,glm::value_ptr(textColor));
+        shader_program = compileShaders(vertex_shader_source, fragment_shader_source);
+
+        position_location = glGetAttribLocation(shader_program, "position");
+        texCoord_attrib_location = glGetAttribLocation(shader_program,"texCoord");
+        textureUnitLocation = glGetUniformLocation (shader_program, "textureUnit" );
+        textColourLocation = glGetUniformLocation(shader_program, "textColor");
+        projectionMatrixLocation = glGetUniformLocation(shader_program, "projection");
     }
-    glUseProgram(0);
+
 
     vbo = prepareVBO(verticles_table, sizeof(verticles_table));
 
@@ -93,7 +98,9 @@ TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewp
 
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    {
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    }
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
@@ -101,16 +108,8 @@ TextRenderer_v2::~TextRenderer_v2(){
     glDeleteBuffers(1, &vbo);
 }
 
-void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y){
-
-    //text = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm";
-    //text = "QWERTFSDAFASDFASDFASDFAEDFGASDFASDFASDFSDFAfasdfasdfDFSGADFGAYdfgasdfg";
-
-
-    //text = "ABCEFGHIJASDFGASDFGASDFASDFASDFASDFKLMNOPQRASTUfasdfaWXYZ";
-
-    //cout << "text.size() = " << text.size() << endl;
-
+void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y)
+{
     GLfloat pen_x = x;
     GLfloat pen_y = y;
     GLfloat x_left = 0.0f;
@@ -124,24 +123,21 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y){
 
     glUseProgram(shader_program);
     {
+        glUniform4fv(textColourLocation,1,glm::value_ptr(mTextColour));
+        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(mProjection));
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
-        //<<<<<<< HEAD
         glActiveTexture(GL_TEXTURE0);
         glUniform1i(textureUnitLocation, 0);
         glBindTexture(GL_TEXTURE_2D, atlas.glyphAtlasTextureId);
-        //=======
+
         glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
         glEnableVertexAttribArray(position_location);
 
         glVertexAttribPointer(texCoord_attrib_location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
         glEnableVertexAttribArray(texCoord_attrib_location);
-
-        //glActiveTexture(GL_TEXTURE0);
-        //glUniform1i(textureUnitLocation, GL_TEXTURE0);
-        //>>>>>>> 3b018f1d22dcc413b5058003badaef475fd91ef1
 
 
         int index = 0;
@@ -167,8 +163,6 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y){
                 }else if(doOptymalization_2(x_right)){
                     continue;
                 }
-
-
 
                 //VERTICLE LEFT TOP 0
                 verticles_table[0 + index] = x_left;    //verticle x pos
@@ -218,17 +212,12 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y){
 
 }
 
-void TextRenderer_v2::onVievportResize(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels){
+void TextRenderer_v2::onVievportResize(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels)
+{
+    viewport.z = viewport_width_in_pixels;
+    viewport.w = viewport_height_in_pixels;
 
-    current_viewport_width_in_pixels = viewport_width_in_pixels;
-    current_viewport_height_in_pixels = viewport_height_in_pixels;
-
-    projectionMatrixLocation = glGetUniformLocation(shader_program, "projection");
-    glUseProgram(shader_program);
-    {
-        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(glm::ortho(static_cast<GLfloat>(0), static_cast<GLfloat>(current_viewport_width_in_pixels), static_cast<GLfloat>(0), static_cast<GLfloat>(current_viewport_height_in_pixels))));
-    }
-    glUseProgram(0);
+    mProjection = glm::ortho(static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.z), static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.w));
 }
 
 void TextRenderer_v2::loadCommon(FT_Library &ft, FT_Face &face, GLuint &fontSize)
@@ -392,13 +381,17 @@ GLuint TextRenderer_v2::prepareVBO(const GLfloat * data, GLsizeiptr size){
     GLuint vbo;
 
     glGenBuffers(1,&vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-    glEnableVertexAttribArray(position_location);
 
-    glVertexAttribPointer(texCoord_attrib_location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(texCoord_attrib_location);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    {
+        glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
+
+        glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+        glEnableVertexAttribArray(position_location);
+
+        glVertexAttribPointer(texCoord_attrib_location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(texCoord_attrib_location);
+    }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return vbo;
@@ -459,7 +452,7 @@ bool TextRenderer_v2::doOptymalization_2(GLfloat x_right){
 }
 
 bool TextRenderer_v2::doOptymalization_1(GLfloat  x_left, GLfloat y_top, GLfloat y_bottom ){
-    if((x_left > current_viewport_width_in_pixels) || (y_bottom > current_viewport_height_in_pixels) || (y_top < 0.0f)){
+    if((x_left > viewport.z) || (y_bottom > viewport.w) || (y_top < 0.0f)){
         return true;
     }
     return false;

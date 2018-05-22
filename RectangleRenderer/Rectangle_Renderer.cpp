@@ -359,8 +359,9 @@ void DE_drawRectangle(DE_Rectangle * rectangle){
             glUniformMatrix4fv(modelMatrixLocation_tex, 1, GL_FALSE, glm::value_ptr(rectangle->model));
 
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, rectangle->texture_id);
             glUniform1i(textureUnitLocation_tex, GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, rectangle->texture_id);
+
 
             glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
             {
