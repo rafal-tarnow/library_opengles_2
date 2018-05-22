@@ -58,6 +58,7 @@ private:
     bool doOptymalization_2(GLfloat x_right);
     bool doOptymalization_1(GLfloat  x_left, GLfloat y_top, GLfloat y_bottom );
     GLuint prepareVBO(const GLfloat * data, GLsizeiptr size);
+
     GLfloat verticles_table[20*MAX_STRING_LENGHT]= {
         107.0f, 99.0f, 0.0f,    1.0f,0.0f,
         107.0f, 0.0f, 0.0f,    1.0f,1.0f,
