@@ -32,7 +32,6 @@ static const GLchar* fragment_shader_source =
         "uniform sampler2D textureUnit;                             \n"
         "                                                           \n"
         "void main() {                                              \n"
-        "   //gl_FragColor = colour;                                \n"
         "   gl_FragColor = texture2D(textureUnit,v_TexCoordinate);  \n"
         "}                                                          \n";
 
@@ -75,7 +74,7 @@ static GLuint initShader()
         viewMatrixLocation = glGetUniformLocation(shader_program, "view");
         modelMatrixLocation = glGetUniformLocation(shader_program, "model");
         colourLocation = glGetUniformLocation(shader_program, "colour");
-              textureUnitLocation = glGetUniformLocation (shader_program, "textureUnit" );
+        textureUnitLocation = glGetUniformLocation (shader_program, "textureUnit" );
 
         shaderInited = 1;
     }
@@ -151,9 +150,18 @@ void TS_drawTriangleStrip(TS_TriangleStrip * triangleStrip)
         glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(triangleStrip->view));
         glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(triangleStrip->model));
 
-        glActiveTexture(GL_TEXTURE0);
+        GLuint texture_unit = 0;
+
+        glActiveTexture(GL_TEXTURE0 + texture_unit);
         glBindTexture(GL_TEXTURE_2D, triangleStrip->texture_id);
-        glUniform1i(textureUnitLocation, GL_TEXTURE0);
+        glUniform1i(textureUnitLocation, texture_unit);
+
+
+//        glActiveTexture(GL_TEXTURE0);
+//        glBindTexture(GL_TEXTURE_2D, triangleStrip->texture_id);
+//        glUniform1i(textureUnitLocation, GL_TEXTURE0);
+
+
 
         glBindBuffer(GL_ARRAY_BUFFER, triangleStrip->vbo_id);
         {
