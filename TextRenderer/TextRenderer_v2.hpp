@@ -16,6 +16,7 @@ const int MAX_STRING_LENGHT = 5000;
 
 #warning "Przerobic TextRenderer_v2 na singletona"
 
+using namespace std;
 
 class Atlas_gl{
 public:
@@ -39,23 +40,6 @@ public:
     std::map<char, GlyphData> glyph_map;
 };
 
-class Atlas_ft{
-public:
-    typedef struct{
-        unsigned int glyph_bitmap_rows;
-        unsigned int glyph_bitmap_width;
-        unsigned char*  glyph_bitmap_buffer = nullptr;
-        FT_Int glyph_bitmap_left;
-        FT_Int glyph_bitmap_top;
-        FT_Pos glyph_advance_x;
-    }CharacterData;
-
-
-    unsigned int total_width;
-    unsigned int max_rows;
-    std::map<char, CharacterData> charactersMap;
-};
-
 class TextRenderer_v2
 {
 public:
@@ -76,13 +60,7 @@ private:
     GLuint prepareVBO(const GLfloat * data, GLsizeiptr size);
 
 
-
-
-
-    Atlas_ft atlas_ft;
-    Atlas_gl atlas_gl;
-
-
+    Atlas_gl * current_atlas;
 
     glm::vec4 viewport = glm::vec4(0,0,0,0);
     std::string previous_string;
@@ -115,6 +93,7 @@ private:
     static GLint textColourLocation;
     static GLint projectionMatrixLocation;
 
+    static map<GLuint , Atlas_gl *> mapaAtlasow;
 
 };
 
