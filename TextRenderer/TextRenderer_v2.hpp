@@ -17,7 +17,7 @@ const int MAX_STRING_LENGHT = 5000;
 #warning "Przerobic TextRenderer_v2 na singletona"
 
 
-class Atlas{
+class Atlas_gl{
 public:
     typedef struct{
         unsigned int glyph_bitmap_width; //converted
@@ -39,6 +39,22 @@ public:
     std::map<char, GlyphData> glyph_map;
 };
 
+class Atlas_ft{
+public:
+    typedef struct{
+        unsigned int glyph_bitmap_rows;
+        unsigned int glyph_bitmap_width;
+        unsigned char*  glyph_bitmap_buffer = nullptr;
+        FT_Int glyph_bitmap_left;
+        FT_Int glyph_bitmap_top;
+        FT_Pos glyph_advance_x;
+    }CharacterData;
+
+
+    unsigned int total_width;
+    unsigned int max_rows;
+    std::map<char, CharacterData> charactersMap;
+};
 
 class TextRenderer_v2
 {
@@ -54,11 +70,27 @@ public:
     void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel);
 
 private:
-    void loadCommon(FT_Library &ft, FT_Face &face, GLuint &fontSize);
-    void prepareGlypAtlas(unsigned int total_width, unsigned int max_rows);
+    void prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl);
     bool doOptymalization_2(GLfloat x_right);
     bool doOptymalization_1(GLfloat  x_left, GLfloat y_top, GLfloat y_bottom );
     GLuint prepareVBO(const GLfloat * data, GLsizeiptr size);
+
+
+
+
+
+    Atlas_ft atlas_ft;
+    Atlas_gl atlas_gl;
+
+
+
+    glm::vec4 viewport = glm::vec4(0,0,0,0);
+    std::string previous_string;
+
+
+    //GOODS
+    GLuint EBO;
+    GLuint vbo;
 
     GLfloat verticles_table[20*MAX_STRING_LENGHT]= {
         0.0f, 0.0f, 0.0f,   1.0f,0.0f,
@@ -72,39 +104,6 @@ private:
         4, 5, 6,    5, 6, 7
     };
 
-    typedef struct{
-        GLuint characterTextureID;
-        unsigned int glyph_bitmap_rows;
-        unsigned int glyph_bitmap_width;
-        unsigned char*  glyph_bitmap_buffer = nullptr;
-        FT_Int glyph_bitmap_left;
-        FT_Int glyph_bitmap_top;
-        FT_Pos glyph_advance_x;
-    }CharacterData;
-
-    std::map<char, CharacterData> charactersMap;
-
-
-    Atlas atlas;
-
-    struct {
-        GLuint textBufferTexture;
-        char * textBuffer;
-    }TextData;
-
-
-    CharacterData charData_tmp;
-    std::string::const_iterator c;
-
-    glm::vec4 viewport = glm::vec4(0,0,0,0);
-
-    GLuint EBO;
-    GLuint vbo;
-
-    std::string previous_string;
-
-
-    //GOODS
     glm::vec4 mTextColour;
     glm::mat4 mProjection;
 

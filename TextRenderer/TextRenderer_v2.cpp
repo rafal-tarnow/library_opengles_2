@@ -76,16 +76,6 @@ TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewp
 
     vbo = prepareVBO(verticles_table, sizeof(verticles_table));
 
-
-    const int TEXT_BUFFER_SIZE = 256;
-    TextData.textBuffer = new char[TEXT_BUFFER_SIZE];
-    TextData.textBuffer = "Tekst do wyswietlenia";
-
-    glGenTextures(1, &(TextData.textBufferTexture));
-    glBindTexture(GL_TEXTURE_2D, TextData.textBufferTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, TEXT_BUFFER_SIZE, 1, 0, GL_ALPHA, GL_UNSIGNED_BYTE, TextData.textBuffer);
-    glBindTexture (GL_TEXTURE_2D, 0);
-
     //preparing EBO
     for(unsigned int i = 0; i < MAX_STRING_LENGHT; i++){
         indices[0 + i*6] = 0 + i*4;
@@ -131,7 +121,7 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y)
 
         glActiveTexture(GL_TEXTURE0);
         glUniform1i(textureUnitLocation, 0);
-        glBindTexture(GL_TEXTURE_2D, atlas.glyphAtlasTextureId);
+        glBindTexture(GL_TEXTURE_2D, atlas_gl.glyphAtlasTextureId);
 
         glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
         glEnableVertexAttribArray(position_location);
@@ -147,11 +137,11 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y)
             // Iterate through all characters
             std::string::const_iterator c;
 
-            Atlas::GlyphData atlasCharData_tmp;
+            Atlas_gl::GlyphData atlasCharData_tmp;
 
             for (c = text.begin(); c != text.end(); c++)
             {
-                atlasCharData_tmp = atlas.glyph_map[*c];
+                atlasCharData_tmp = atlas_gl.glyph_map[*c];
 
                 x_left = pen_x + atlasCharData_tmp.glyph_bitmap_left;
                 x_right = x_left + atlasCharData_tmp.glyph_bitmap_width;
@@ -220,69 +210,6 @@ void TextRenderer_v2::onVievportResize(GLfloat viewport_width_in_pixels, GLfloat
     mProjection = glm::ortho(static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.z), static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.w));
 }
 
-void TextRenderer_v2::loadCommon(FT_Library &ft, FT_Face &face, GLuint &fontSize)
-{
-
-    if(FT_Select_Charmap(face, FT_ENCODING_UNICODE ))
-        std::cout << "ERROR Select Charmap" << std::endl;
-
-    FT_Set_Pixel_Sizes(face, 0, fontSize);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    GLuint TextureID;
-
-    unsigned int max_rows = 0;
-    unsigned int max_width = 0;
-    int total_width = 0;
-
-    for(char c = ' '; c <= 'z'; c++)
-    {
-        //LOAD ONE CHAR DATA
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-        {
-            std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
-            continue;
-        }
-
-        //drawGlyphToConsole(face);
-
-        //UPDATE MAX GLYPH WIDTH and MAX GLYPH HEIGHT
-        if(face->glyph->bitmap.rows > max_rows){
-            max_rows = face->glyph->bitmap.rows;
-        }
-        if(face->glyph->bitmap.width > max_width){
-            max_width = face->glyph->bitmap.width;
-        }
-        total_width += face->glyph->bitmap.width;
-
-        //Copy data from ft_glyph to CharacterData
-        charData_tmp.glyph_bitmap_width = face->glyph->bitmap.width;
-        charData_tmp.glyph_bitmap_rows = face->glyph->bitmap.rows;
-        charData_tmp.glyph_bitmap_left = face->glyph->bitmap_left;
-        charData_tmp.glyph_bitmap_top = face->glyph->bitmap_top;
-        charData_tmp.glyph_advance_x = face->glyph->advance.x;
-#warning "where is delete buffer?"
-        charData_tmp.glyph_bitmap_buffer = new unsigned char[int((face->glyph->bitmap.width)*(face->glyph->bitmap.rows))];
-        //Copy buffer data form glyph to CharacterData
-        for(unsigned int i = 0; i < (face->glyph->bitmap.width)*(face->glyph->bitmap.rows); i++){
-            charData_tmp.glyph_bitmap_buffer[i] = face->glyph->bitmap.buffer[i];
-        }
-
-        charactersMap[c] = charData_tmp;
-    }
-
-    cout << "Glyph count = " << charactersMap.size() << endl;
-    cout << "Max rows = " << max_rows << endl;
-    cout << "Max width = " << max_width << endl;
-    cout << "Total_width = " << total_width << endl;
-
-    prepareGlypAtlas(total_width, max_rows);
-
-    FT_Done_Face (face);
-    FT_Done_FreeType (ft);
-}
-
 void TextRenderer_v2::LoadFromMemory(const unsigned char * font_data, int data_size, GLuint fontSize)
 {
     FT_Library ft;
@@ -300,7 +227,10 @@ void TextRenderer_v2::LoadFromMemory(const unsigned char * font_data, int data_s
         exit(EXIT_FAILURE);
     }
 
-    loadCommon(ft, face, fontSize);
+    prepareOpenGLAtlas(ft, face, fontSize, atlas_gl);
+
+    FT_Done_Face (face);
+    FT_Done_FreeType (ft);
 }
 
 void TextRenderer_v2::Load(std::string font, GLuint fontSize){
@@ -321,8 +251,10 @@ void TextRenderer_v2::Load(std::string font, GLuint fontSize){
         exit(EXIT_FAILURE);
     }
 
-    loadCommon(ft, face, fontSize);
+    prepareOpenGLAtlas(ft, face, fontSize, atlas_gl);
 
+    FT_Done_Face (face);
+    FT_Done_FreeType (ft);
 }
 
 
@@ -397,43 +329,75 @@ GLuint TextRenderer_v2::prepareVBO(const GLfloat * data, GLsizeiptr size){
     return vbo;
 }
 
-void TextRenderer_v2::prepareGlypAtlas(unsigned int total_width, unsigned int max_rows){
+void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl){
+
+
+    if(FT_Select_Charmap(face, FT_ENCODING_UNICODE ))
+        std::cout << "ERROR Select Charmap" << std::endl;
+
+    FT_Set_Pixel_Sizes(face, 0, fontSize);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    //CALCULATE TOTAL WIDTH AND MAX HEIGHT TO KNOW HOW MUCH BUFFER ALOCATE
+    unsigned int max_rows = 0;
+    int total_width = 0;
+
+    for(char c = ' '; c <= 'z'; c++)
+    {
+        //LOAD ONE CHAR DATA
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+        {
+            std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+            continue;
+        }
+        //UPDATE MAX GLYPH WIDTH and MAX GLYPH HEIGHT
+        if(face->glyph->bitmap.rows > max_rows){
+            max_rows = face->glyph->bitmap.rows;
+        }
+        total_width += face->glyph->bitmap.width;
+    }
+
 
     unsigned char *  atlas_tmp_buffer = new unsigned char[(int)((total_width)*(max_rows))];
 
     int pen = 0;
-    CharacterData tmp_CharacterData;
     for(char c = ' '; c <= 'z'; c++)
     {
-        tmp_CharacterData = charactersMap[c];
-        for(unsigned int bitmap_row_index = 0; bitmap_row_index < (unsigned int)(tmp_CharacterData.glyph_bitmap_rows); bitmap_row_index++)
+        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
         {
-            for(unsigned int bitmap_column_index = 0; bitmap_column_index < (unsigned int)((tmp_CharacterData.glyph_bitmap_width)); bitmap_column_index++)
+            std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+            continue;
+        }
+
+        for(unsigned int bitmap_row_index = 0; bitmap_row_index < (unsigned int)(face->glyph->bitmap.rows); bitmap_row_index++)
+        {
+            for(unsigned int bitmap_column_index = 0; bitmap_column_index < (unsigned int)((face->glyph->bitmap.width)); bitmap_column_index++)
             {
 
-                atlas_tmp_buffer[pen + bitmap_column_index + bitmap_row_index*total_width] = tmp_CharacterData.glyph_bitmap_buffer[bitmap_column_index + bitmap_row_index*(int)(tmp_CharacterData.glyph_bitmap_width)];
+                atlas_tmp_buffer[pen + bitmap_column_index + bitmap_row_index*total_width] = face->glyph->bitmap.buffer[bitmap_column_index + bitmap_row_index*(int)(face->glyph->bitmap.width)];
             }
         }
 
-        atlas.glyph_map[c].glyph_bitmap_width = tmp_CharacterData.glyph_bitmap_width;
-        atlas.glyph_map[c].glyph_bitmap_left = tmp_CharacterData.glyph_bitmap_left;
-        atlas.glyph_map[c].glyph_bitmap_top = tmp_CharacterData.glyph_bitmap_top;
-        atlas.glyph_map[c].glyph_bitmap_rows = tmp_CharacterData.glyph_bitmap_rows;
-        atlas.glyph_map[c].glyph_advance_x = tmp_CharacterData.glyph_advance_x;
+        atlas_gl.glyph_map[c].glyph_bitmap_width = face->glyph->bitmap.width;
+        atlas_gl.glyph_map[c].glyph_bitmap_left = face->glyph->bitmap_left;
+        atlas_gl.glyph_map[c].glyph_bitmap_top = face->glyph->bitmap_top;
+        atlas_gl.glyph_map[c].glyph_bitmap_rows = face->glyph->bitmap.rows;
+        atlas_gl.glyph_map[c].glyph_advance_x = face->glyph->advance.x;
 
         //CALCULATE GLYPH TEXTURE COORDINATES
-        atlas.glyph_map[c].u_coord_left = ((GLfloat)pen/(GLfloat)total_width);
-        pen += tmp_CharacterData.glyph_bitmap_width;
-        atlas.glyph_map[c].u_coord_right = ((GLfloat)pen/(GLfloat)total_width);
-        atlas.glyph_map[c].v_coord_top = 1.0f;
-        atlas.glyph_map[c].v_coord_bottom = 1.0f - (GLfloat)tmp_CharacterData.glyph_bitmap_rows/(GLfloat)max_rows;
+        atlas_gl.glyph_map[c].u_coord_left = ((GLfloat)pen/(GLfloat)total_width);
+        pen += face->glyph->bitmap.width;
+        atlas_gl.glyph_map[c].u_coord_right = ((GLfloat)pen/(GLfloat)total_width);
+        atlas_gl.glyph_map[c].v_coord_top = 1.0f;
+        atlas_gl.glyph_map[c].v_coord_bottom = 1.0f - (GLfloat)face->glyph->bitmap.rows/(GLfloat)max_rows;
         cout << "ZNAK = " << c << endl;
-        cout <<  "charactersMap[c].u_coord_left = " << atlas.glyph_map[c].u_coord_left << endl;
-        cout << "charactersMap[c].u_coord_right = " << atlas.glyph_map[c].u_coord_right << endl;
+        cout <<  "charactersMap[c].u_coord_left = " << atlas_gl.glyph_map[c].u_coord_left << endl;
+        cout << "charactersMap[c].u_coord_right = " << atlas_gl.glyph_map[c].u_coord_right << endl;
     }
 
-    glGenTextures(1, &atlas.glyphAtlasTextureId);
-    glBindTexture(GL_TEXTURE_2D,  atlas.glyphAtlasTextureId);
+    glGenTextures(1, &atlas_gl.glyphAtlasTextureId);
+    glBindTexture(GL_TEXTURE_2D,  atlas_gl.glyphAtlasTextureId);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, total_width, max_rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, atlas_tmp_buffer);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
