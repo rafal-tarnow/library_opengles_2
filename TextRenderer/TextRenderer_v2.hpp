@@ -14,7 +14,9 @@
 
 const int MAX_STRING_LENGHT = 5000;
 
-#warning "Przerobic TextRenderer_v2 na singletona"
+#warning "TextRenderer_v2 dorobienie czyszczenia statycznych atlasow"
+#warning "TextRenderer_v2 dorobienie kwartatowej tekstury open gl zamiast prostokatnej"
+#warning "TextRenderer_v2 dorobienie sprawdzania maksymalnej tekstury dla atlasu"
 
 using namespace std;
 
