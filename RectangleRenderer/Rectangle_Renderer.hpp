@@ -11,6 +11,8 @@ typedef struct{
     GLuint vbo_id;
     GLuint texture_id;
     glm::vec4 colour;
+    glm::vec3 position;
+    glm::vec2 dimm;
     glm::mat4 projection;
     glm::mat4 view;
     glm::mat4 model;
@@ -24,6 +26,8 @@ void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 posi
 void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GLfloat width, GLfloat height, GLfloat z = 0.0f);
 void DE_initRectangle(DE_Rectangle * rectangle, GLuint * textureId, GLfloat width, GLfloat height, GLfloat z = 0.0f);
 void DE_initRectangle(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec3 position, glm::vec2 dimm);
+
+void DE_setDimm(DE_Rectangle * rectangle, glm::vec2 dimm);
 
 void DE_drawRectangle(DE_Rectangle * rectangle);
 

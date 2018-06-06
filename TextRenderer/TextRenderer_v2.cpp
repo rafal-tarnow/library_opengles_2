@@ -369,7 +369,7 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
     unsigned int max_rows = 0;
     int total_width = 0;
 
-    for(char c = '!'; c <= 'z'; c++)
+    for(char c = ' '; c <= 'z'; c++)
     {
         //LOAD ONE CHAR DATA
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
@@ -394,7 +394,7 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
     float texture_v_offset = 0.5f*1.0f/float(max_rows);
     float texture_v_unit = 1.0f/float(max_rows);
 
-    for(char c = '!'; c <= 'z'; c++)
+    for(char c = ' '; c <= 'z'; c++)
     {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
         {
@@ -423,12 +423,12 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
         atlas_gl.glyph_map[c].u_coord_right = GLfloat(pen)*texture_u_unit + texture_u_offset;
         atlas_gl.glyph_map[c].v_coord_top = 1.0f - texture_v_offset;
         atlas_gl.glyph_map[c].v_coord_bottom = 1.0f - (GLfloat)(face->glyph->bitmap.rows)*texture_v_unit - texture_v_offset;
-        cout << "ZNAK = " << c << endl;
-        cout << "texture_offset = " << texture_u_offset << endl;
-        cout << "glyph->bitmap.width = " << atlas_gl.glyph_map[c].glyph_bitmap_width << endl;
-        cout << "glyph->bitmap.rows = " << atlas_gl.glyph_map[c].glyph_bitmap_rows << endl;
-        cout <<  "charactersMap[c].u_coord_left = " << atlas_gl.glyph_map[c].u_coord_left << endl;
-        cout << "charactersMap[c].u_coord_right = " << atlas_gl.glyph_map[c].u_coord_right << endl;
+//        cout << "ZNAK = " << c << endl;
+//        cout << "texture_offset = " << texture_u_offset << endl;
+//        cout << "glyph->bitmap.width = " << atlas_gl.glyph_map[c].glyph_bitmap_width << endl;
+//        cout << "glyph->bitmap.rows = " << atlas_gl.glyph_map[c].glyph_bitmap_rows << endl;
+//        cout <<  "charactersMap[c].u_coord_left = " << atlas_gl.glyph_map[c].u_coord_left << endl;
+//        cout << "charactersMap[c].u_coord_right = " << atlas_gl.glyph_map[c].u_coord_right << endl;
     }
 
     glGenTextures(1, &atlas_gl.glyphAtlasTextureId);
