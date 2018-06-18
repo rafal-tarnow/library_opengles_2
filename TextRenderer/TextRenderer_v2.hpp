@@ -61,6 +61,7 @@ private:
     bool doOptymalization_1(GLfloat  x_left, GLfloat y_top, GLfloat y_bottom );
     GLuint prepareVBO(const GLfloat * data, GLsizeiptr size);
 
+    void debugRenderAtlas(GLfloat x, GLfloat y);
 
     Atlas_gl * current_atlas;
 
@@ -91,7 +92,7 @@ private:
     static GLuint shader_program;
     static GLint position_location;
     static GLint texCoord_attrib_location;
-    static GLint textureUnitLocation;
+    static GLint textureMapLocation;
     static GLint textColourLocation;
     static GLint projectionMatrixLocation;
 
