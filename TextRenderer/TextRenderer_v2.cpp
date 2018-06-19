@@ -37,16 +37,8 @@ static const GLchar* fragment_shader_source =
         "uniform sampler2D textureMap;             \n"
         "uniform vec4 textColor;                    \n"
         "void main() {                              \n"
-        "   vec4 sampled;                           \n"
-        "   if((v_TexCoordinate.x <= 1.0) && (v_TexCoordinate.x >= 0.0) && (v_TexCoordinate.y <= 1.0) && (v_TexCoordinate.y >= 0.0))    \n"
-        "   {                                                                                               \n"
-        "       sampled = vec4(1.0, 1.0, 1.0, texture2D(textureMap,v_TexCoordinate).a);                     \n"
+        "       vec4 sampled = vec4(1.0, 1.0, 1.0, texture2D(textureMap,v_TexCoordinate).a);                     \n"
         "       gl_FragColor = textColor * sampled;                                                         \n"
-        "   }                                                                                               \n"
-        "   else                                                                                            \n"
-        "   {                                                                                               \n"
-        "       gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);                                                      \n"
-        "   }                                                                                               \n"
         "}                                                                                                  \n";
 
 GLuint TextRenderer_v2::shader_program = 0;
@@ -188,8 +180,28 @@ void TextRenderer_v2::LoadFromMemory(const unsigned char * font_data, int data_s
     }
 }
 
-void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl){
+//Opengl texture bytes order
 
+//image size width 7, height 5
+
+//      -> image height
+//      |
+//      |
+//      3|  21  22  23  24  25  26  27
+//      2|  14  15  16  17  18  19  20
+//      1|  7   8   9   10  11  12  13
+//      0|  0   1   2   3   4   5   6    -> bytes order in texture array
+//        -----------------------------
+//          0   1   2   3   4   5   6 -> image width
+
+
+inline unsigned int index_bufora(int column, int row, int texture_width)
+{
+    return row*texture_width + column;
+}
+
+
+void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl){
 
     if(FT_Select_Charmap(face, FT_ENCODING_UNICODE ))
         std::cout << "ERROR Select Charmap" << std::endl;
@@ -220,19 +232,29 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
 
     unsigned char *  atlas_tmp_buffer = new unsigned char[(int)((total_width)*(max_rows))];
     unsigned int buff_size = total_width*max_rows;
+
+    //    float delta = 255.0f / buff_size;
+    //    float val = 0.0f;
+
     for(unsigned int i = 0; i < buff_size; i++)
     {
-        atlas_tmp_buffer[i] = 0;
+        //        if(i < 4000)
+        //        {
+        //            atlas_tmp_buffer[i] = 255;
+        //        }else{
+        //            atlas_tmp_buffer[i] = 0;
+        //        }
+
+        //        atlas_tmp_buffer[i] = val;
+        //        val = val + delta;
+
+        atlas_tmp_buffer[i] = 255;
     }
 
     int pen = 0;
-    float texture_u_offset = 0.5f*1.0f/float(total_width);
-    float texture_u_unit = 1.0f/float(total_width);
-
-    float texture_v_offset = 0.5f*1.0f/float(max_rows);
-    float texture_v_unit = 1.0f/float(max_rows);
 
     for(char c = ' '; c <= 'z'; c++)
+    //for(char c = 'A'; c <= 'A'; c++)
     {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
         {
@@ -244,8 +266,8 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
         {
             for(unsigned int bitmap_column_index = 0; bitmap_column_index < (unsigned int)((face->glyph->bitmap.width)); bitmap_column_index++)
             {
-
-                atlas_tmp_buffer[pen + bitmap_column_index + bitmap_row_index*total_width] = face->glyph->bitmap.buffer[bitmap_column_index + bitmap_row_index*(int)(face->glyph->bitmap.width)];
+                unsigned int index = index_bufora(pen + bitmap_column_index,(max_rows - 1) - bitmap_row_index, total_width);
+                atlas_tmp_buffer[index] = face->glyph->bitmap.buffer[bitmap_column_index + bitmap_row_index*(int)(face->glyph->bitmap.width)];
             }
         }
 
@@ -256,17 +278,19 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
         atlas_gl.glyph_map[c].glyph_advance_x = face->glyph->advance.x;
 
         //CALCULATE GLYPH TEXTURE COORDINATES
-        atlas_gl.glyph_map[c].u_coord_left = GLfloat(pen)*texture_u_unit + texture_u_offset;
-        pen += face->glyph->bitmap.width;
-        atlas_gl.glyph_map[c].u_coord_right = GLfloat(pen)*texture_u_unit + texture_u_offset;
-        atlas_gl.glyph_map[c].v_coord_top = 1.0f - texture_v_offset;
-        atlas_gl.glyph_map[c].v_coord_bottom = /*1.0f - (GLfloat)(face->glyph->bitmap.rows)*texture_v_unit -*/ texture_v_offset;
+        atlas_gl.glyph_map[c].u_coord_left = double(pen)/double(total_width);
+        atlas_gl.glyph_map[c].u_coord_right = double(pen + face->glyph->bitmap.width)/double(total_width);
+        atlas_gl.glyph_map[c].v_coord_top = 1.0;
+        atlas_gl.glyph_map[c].v_coord_bottom = 1.0 - (double(face->glyph->bitmap.rows)/double(max_rows));
+
         //        cout << "ZNAK = " << c << endl;
         //        cout << "texture_offset = " << texture_u_offset << endl;
         //        cout << "glyph->bitmap.width = " << atlas_gl.glyph_map[c].glyph_bitmap_width << endl;
         //        cout << "glyph->bitmap.rows = " << atlas_gl.glyph_map[c].glyph_bitmap_rows << endl;
         //        cout <<  "charactersMap[c].u_coord_left = " << atlas_gl.glyph_map[c].u_coord_left << endl;
         //        cout << "charactersMap[c].u_coord_right = " << atlas_gl.glyph_map[c].u_coord_right << endl;
+
+        pen += face->glyph->bitmap.width;
     }
 
     atlas_gl.atlas_width = total_width;
@@ -277,8 +301,8 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
     glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, atlas_gl.atlas_width, atlas_gl.atlas_rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, atlas_tmp_buffer);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glBindTexture (GL_TEXTURE_2D, 0);
 
     delete[] atlas_tmp_buffer;
@@ -355,8 +379,8 @@ void TextRenderer_v2::debugRenderAtlas(GLfloat x, GLfloat y)
 
 void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y)
 {
-    debugRenderAtlas(x, y);
-    return;
+//    debugRenderAtlas(x, y);
+//    return;
 
     GLfloat pen_x = x;
     GLfloat pen_y = y;
@@ -417,28 +441,28 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y)
                 verticles_table[1 + index] = y_top;     //verticle y pos
                 //verticles_table[2 + index] = 0.0f;    //verticle z pos
                 verticles_table[3 + index] = atlasCharData_tmp.u_coord_left;
-                verticles_table[4 + index] = 0.0f;//atlasCharData_tmp.v_coord_bottom;
+                verticles_table[4 + index] = atlasCharData_tmp.v_coord_top;
 
                 //VERTICLE LEFT BOTTOM 1
                 verticles_table[5 + index] = x_left;    //verticle x pos
                 verticles_table[6 + index] = y_bottom;  //verticle y pos
                 //verticles_table[7 + index] = 0.0f;    //verticle z pos
                 verticles_table[8 + index] = atlasCharData_tmp.u_coord_left;
-                verticles_table[9 + index] = /*1.0f;//*/atlasCharData_tmp.v_coord_top;
+                verticles_table[9 + index] = atlasCharData_tmp.v_coord_bottom;
 
                 //VERTICLE RIGH TOP 2
                 verticles_table[10 + index] = x_right;  //verticle x pos
                 verticles_table[11 + index] = y_top;    //verticle y pos
                 //verticles_table[12 + index] = 0.0f;    //verticle z pos
                 verticles_table[13 + index] = atlasCharData_tmp.u_coord_right;
-                verticles_table[14 + index] = 0.0f;//atlasCharData_tmp.v_coord_bottom;
+                verticles_table[14 + index] = atlasCharData_tmp.v_coord_top;
 
                 //VERTICLE RIGHT BOTTOM 3
                 verticles_table[15 + index] = x_right;  //verticle x pos
                 verticles_table[16 + index] = y_bottom; //verticle y pos
                 //verticles_table[17 + index] = 0.0f; //verticle z pos
                 verticles_table[18 + index] = atlasCharData_tmp.u_coord_right;
-                verticles_table[19 + index] =/* 1.0f;//*/atlasCharData_tmp.v_coord_top;
+                verticles_table[19 + index] = atlasCharData_tmp.v_coord_bottom;
 
 
                 pen_x += ((GLfloat)(atlasCharData_tmp.glyph_advance_x))/64.0f;

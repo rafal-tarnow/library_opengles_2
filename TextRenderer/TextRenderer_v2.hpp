@@ -29,10 +29,10 @@ public:
         unsigned int glyph_bitmap_rows; //converted
         FT_Pos glyph_advance_x;
 
-        GLfloat u_coord_right;
-        GLfloat u_coord_left;
-        GLfloat v_coord_top;
-        GLfloat v_coord_bottom;
+        double u_coord_right;
+        double u_coord_left;
+        double v_coord_top;
+        double v_coord_bottom;
     }GlyphData;
 
     unsigned int atlas_width;
