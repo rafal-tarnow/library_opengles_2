@@ -37,7 +37,7 @@ static const GLchar* fragment_shader_source =
         "uniform sampler2D textureMap;             \n"
         "uniform vec4 textColor;                    \n"
         "void main() {                              \n"
-        "       vec4 sampled = vec4(1.0, 1.0, 1.0, texture2D(textureMap,v_TexCoordinate).a);                     \n"
+        "       vec4 sampled = vec4(1.0, 1.0, 1.0, texture2D(textureMap,v_TexCoordinate).a);                \n"
         "       gl_FragColor = textColor * sampled;                                                         \n"
         "}                                                                                                  \n";
 
@@ -233,28 +233,14 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
     unsigned char *  atlas_tmp_buffer = new unsigned char[(int)((total_width)*(max_rows))];
     unsigned int buff_size = total_width*max_rows;
 
-    //    float delta = 255.0f / buff_size;
-    //    float val = 0.0f;
-
     for(unsigned int i = 0; i < buff_size; i++)
     {
-        //        if(i < 4000)
-        //        {
-        //            atlas_tmp_buffer[i] = 255;
-        //        }else{
-        //            atlas_tmp_buffer[i] = 0;
-        //        }
-
-        //        atlas_tmp_buffer[i] = val;
-        //        val = val + delta;
-
-        atlas_tmp_buffer[i] = 255;
+        atlas_tmp_buffer[i] = 0;
     }
 
     int pen = 0;
 
     for(char c = ' '; c <= 'z'; c++)
-    //for(char c = 'A'; c <= 'A'; c++)
     {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
         {
@@ -471,17 +457,13 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y)
             glBufferSubData (GL_ARRAY_BUFFER, 0, sizeof(verticles_table), verticles_table);
         }
 
-        //glDrawArrays(GL_TRIANGLE_STRIP, 0,4*text.size() );
         glDrawElements(GL_TRIANGLES, 6*text.size(), GL_UNSIGNED_INT, 0);
-
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindTexture (GL_TEXTURE_2D, 0);
-
     }
     glUseProgram(0);
-
 }
 
 
@@ -582,8 +564,6 @@ void drawGlyphToConsole(FT_Face &face){
             }else{
                 cout << " ";
             }
-
-
         }
         cout << endl;
     }

@@ -177,7 +177,7 @@ void TextRenderer_v1::Load(std::string font, GLuint fontSize){
             continue;
         }
 
-        drawGlyphToConsole(face);
+        //drawGlyphToConsole(face);
 
         glGenTextures(1, &TextureID);
         glBindTexture(GL_TEXTURE_2D, TextureID);
