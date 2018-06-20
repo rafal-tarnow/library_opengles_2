@@ -1,6 +1,9 @@
 #include "TextRenderer_v2.hpp"
 
 #include <iostream>
+#include <cmath>
+
+#include "stb_rect_pack.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -135,7 +138,8 @@ void TextRenderer_v2::Load(std::string font, GLuint fontSize)
 
         Atlas_gl * atlas_gl = new Atlas_gl();
 
-        prepareOpenGLAtlas(ft, face, fontSize, *atlas_gl);
+        //prepareOpenGLRectangleAtlas(ft, face, fontSize, *atlas_gl);
+        prepareOpenGLSquareAtlas(ft, face, fontSize, *atlas_gl);
 
         FT_Done_Face (face);
         FT_Done_FreeType (ft);
@@ -170,7 +174,8 @@ void TextRenderer_v2::LoadFromMemory(const unsigned char * font_data, int data_s
 
         Atlas_gl * atlas_gl = new Atlas_gl();
 
-        prepareOpenGLAtlas(ft, face, fontSize, *atlas_gl);
+        //prepareOpenGLRectangleAtlas(ft, face, fontSize, *atlas_gl);
+        prepareOpenGLSquareAtlas(ft, face, fontSize, *atlas_gl);
 
         FT_Done_Face (face);
         FT_Done_FreeType (ft);
@@ -201,7 +206,103 @@ inline unsigned int index_bufora(int column, int row, int texture_width)
 }
 
 
-void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl){
+//void TextRenderer_v2::prepareOpenGLRectangleAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl){
+
+//    if(FT_Select_Charmap(face, FT_ENCODING_UNICODE ))
+//        std::cout << "ERROR Select Charmap" << std::endl;
+
+//    FT_Set_Pixel_Sizes(face, 0, fontSize);
+
+//    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+//    //CALCULATE TOTAL WIDTH AND MAX HEIGHT TO KNOW HOW MUCH BUFFER ALOCATE
+//    unsigned int max_rows = 0;
+//    int total_width = 0;
+
+//    for(char c = ' '; c <= 'z'; c++)
+//    {
+//        //LOAD ONE CHAR DATA
+//        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+//        {
+//            std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+//            continue;
+//        }
+//        //UPDATE MAX GLYPH WIDTH and MAX GLYPH HEIGHT
+//        if(face->glyph->bitmap.rows > max_rows){
+//            max_rows = face->glyph->bitmap.rows;
+//        }
+//        total_width += face->glyph->bitmap.width;
+//    }
+
+
+//    unsigned char *  atlas_tmp_buffer = new unsigned char[(int)((total_width)*(max_rows))];
+//    unsigned int buff_size = total_width*max_rows;
+
+//    for(unsigned int i = 0; i < buff_size; i++)
+//    {
+//        atlas_tmp_buffer[i] = 0;
+//    }
+
+//    int pen = 0;
+
+//    for(char c = ' '; c <= 'z'; c++)
+//    {
+//        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+//        {
+//            std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+//            continue;
+//        }
+
+//        for(unsigned int bitmap_row_index = 0; bitmap_row_index < (unsigned int)(face->glyph->bitmap.rows); bitmap_row_index++)
+//        {
+//            for(unsigned int bitmap_column_index = 0; bitmap_column_index < (unsigned int)((face->glyph->bitmap.width)); bitmap_column_index++)
+//            {
+//                unsigned int index = index_bufora(pen + bitmap_column_index,(max_rows - 1) - bitmap_row_index, total_width);
+//                atlas_tmp_buffer[index] = face->glyph->bitmap.buffer[bitmap_column_index + bitmap_row_index*(int)(face->glyph->bitmap.width)];
+//            }
+//        }
+
+//        atlas_gl.glyph_map[c].glyph_bitmap_width = face->glyph->bitmap.width;
+//        atlas_gl.glyph_map[c].glyph_bitmap_left = face->glyph->bitmap_left;
+//        atlas_gl.glyph_map[c].glyph_bitmap_top = face->glyph->bitmap_top;
+//        atlas_gl.glyph_map[c].glyph_bitmap_rows = face->glyph->bitmap.rows;
+//        atlas_gl.glyph_map[c].glyph_advance_x = face->glyph->advance.x;
+
+//        //CALCULATE GLYPH TEXTURE COORDINATES
+//        atlas_gl.glyph_map[c].u_coord_left = double(pen)/double(total_width);
+//        atlas_gl.glyph_map[c].u_coord_right = double(pen + face->glyph->bitmap.width)/double(total_width);
+//        atlas_gl.glyph_map[c].v_coord_top = 1.0;
+//        atlas_gl.glyph_map[c].v_coord_bottom = 1.0 - (double(face->glyph->bitmap.rows)/double(max_rows));
+
+//        //        cout << "ZNAK = " << c << endl;
+//        //        cout << "texture_offset = " << texture_u_offset << endl;
+//        //        cout << "glyph->bitmap.width = " << atlas_gl.glyph_map[c].glyph_bitmap_width << endl;
+//        //        cout << "glyph->bitmap.rows = " << atlas_gl.glyph_map[c].glyph_bitmap_rows << endl;
+//        //        cout <<  "charactersMap[c].u_coord_left = " << atlas_gl.glyph_map[c].u_coord_left << endl;
+//        //        cout << "charactersMap[c].u_coord_right = " << atlas_gl.glyph_map[c].u_coord_right << endl;
+
+//        pen += face->glyph->bitmap.width;
+//    }
+
+//    atlas_gl.atlas_width = total_width;
+//    atlas_gl.atlas_rows = max_rows;
+
+//    glGenTextures(1, &atlas_gl.rectangle_AtlasTextureId);
+//    glBindTexture(GL_TEXTURE_2D,  atlas_gl.rectangle_AtlasTextureId);
+//    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, atlas_gl.atlas_width, atlas_gl.atlas_rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, atlas_tmp_buffer);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//    glBindTexture (GL_TEXTURE_2D, 0);
+
+//    delete[] atlas_tmp_buffer;
+//}
+
+stbrp_context context;
+struct stbrp_rect * rects;
+
+void TextRenderer_v2::prepareOpenGLSquareAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl){
 
     if(FT_Select_Charmap(face, FT_ENCODING_UNICODE ))
         std::cout << "ERROR Select Charmap" << std::endl;
@@ -227,19 +328,83 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
             max_rows = face->glyph->bitmap.rows;
         }
         total_width += face->glyph->bitmap.width;
+
+        atlas_gl.glyph_map[c].glyph_bitmap_width = face->glyph->bitmap.width;
+        atlas_gl.glyph_map[c].glyph_bitmap_left = face->glyph->bitmap_left;
+        atlas_gl.glyph_map[c].glyph_bitmap_top = face->glyph->bitmap_top;
+        atlas_gl.glyph_map[c].glyph_bitmap_rows = face->glyph->bitmap.rows;
+        atlas_gl.glyph_map[c].glyph_advance_x = face->glyph->advance.x;
     }
 
+    //CALCULATE TOTAL SIZE FOR TO KNOW HOW BIG TEXTURE MUST BE
+    uint64_t total_size = 0.0;
+    for(char c = ' '; c <= 'z'; c++)
+    {
+        total_size = total_size + atlas_gl.glyph_map[c].glyph_bitmap_width * atlas_gl.glyph_map[c].glyph_bitmap_rows;
+    }
+    cout << "total size = " << total_size;
 
-    unsigned char *  atlas_tmp_buffer = new unsigned char[(int)((total_width)*(max_rows))];
-    unsigned int buff_size = total_width*max_rows;
+
+    //CALCULATE MINIMAL TEXTURE SIZE WHICH IS POSSIBLE TO LOAD GLYPHS
+    uint64_t minimal_texture_size = 0;
+    for(int i = 0; i < 64 ; i++)
+    {
+        double potega = pow(2,i);
+        if(potega*potega >= total_size)
+        {
+            minimal_texture_size = potega;
+            break;
+        }
+    }
+    cout << "minimal_texture_size = " << minimal_texture_size << endl;
+    cout.flush();
+
+
+    //INIT STB RECTS
+    rects = (stbrp_rect*)malloc(sizeof(stbrp_rect)*atlas_gl.glyph_map.size());
+
+   for(char c = ' '; c <= 'z'; c++)
+    {
+        rects[c - ' '].id = c;
+        rects[c - ' '].w = atlas_gl.glyph_map[c].glyph_bitmap_width;
+        rects[c - ' '].h = atlas_gl.glyph_map[c].glyph_bitmap_rows;//
+        rects[c - ' '].x = 0;
+        rects[c - ' '].y = 0;
+        rects[c - ' '].was_packed = 0;
+    }
+
+   int TARGET_DIM = minimal_texture_size;
+   int ret;
+   //TRY PACK RECTANGLES INTO SQUARE UNTIL SUCESSFULL
+   do{
+       struct stbrp_node * ptr_nodes = (struct stbrp_node *)malloc(sizeof(stbrp_node)*TARGET_DIM*2);
+
+       stbrp_init_target(&context, TARGET_DIM, TARGET_DIM, ptr_nodes, TARGET_DIM*2);
+       ret = stbrp_pack_rects(&context, rects, atlas_gl.glyph_map.size());
+
+       free(ptr_nodes);
+       if(ret != 1)
+           TARGET_DIM = TARGET_DIM*2;
+
+   }while(ret != 1);
+
+//   for (int i=0; i< atlas_gl.glyph_map.size(); i++)
+//   {
+//           printf("rect '%c' %i (pos.x = %hu, pos.y = %hu) (height = %hu, width = %hu) was_packed=%i\n", rects[i].id, rects[i].id, rects[i].x, rects[i].y, rects[i].h, rects[i].w, rects[i].was_packed);
+//   }
+
+
+    //ALLOCATE DATA FOR TEXTURE BUFFER
+    unsigned char *  atlas_tmp_buffer = new unsigned char[(int)((TARGET_DIM)*(TARGET_DIM))];
+    unsigned int buff_size = TARGET_DIM*TARGET_DIM;
 
     for(unsigned int i = 0; i < buff_size; i++)
     {
-        atlas_tmp_buffer[i] = 0;
+        atlas_tmp_buffer[i] = 255;
     }
 
-    int pen = 0;
 
+    int pen = 0;
     for(char c = ' '; c <= 'z'; c++)
     {
         if (FT_Load_Char(face, c, FT_LOAD_RENDER))
@@ -248,26 +413,24 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
             continue;
         }
 
+        unsigned int x_pos = rects[c - ' '].x;
+        unsigned int y_pos = rects[c - ' '].y;
+        unsigned int height = rects[c - ' '].h;
+
         for(unsigned int bitmap_row_index = 0; bitmap_row_index < (unsigned int)(face->glyph->bitmap.rows); bitmap_row_index++)
         {
             for(unsigned int bitmap_column_index = 0; bitmap_column_index < (unsigned int)((face->glyph->bitmap.width)); bitmap_column_index++)
             {
-                unsigned int index = index_bufora(pen + bitmap_column_index,(max_rows - 1) - bitmap_row_index, total_width);
+                unsigned int index = index_bufora(x_pos + bitmap_column_index, (y_pos + height - 1) - bitmap_row_index, TARGET_DIM);
                 atlas_tmp_buffer[index] = face->glyph->bitmap.buffer[bitmap_column_index + bitmap_row_index*(int)(face->glyph->bitmap.width)];
             }
         }
 
-        atlas_gl.glyph_map[c].glyph_bitmap_width = face->glyph->bitmap.width;
-        atlas_gl.glyph_map[c].glyph_bitmap_left = face->glyph->bitmap_left;
-        atlas_gl.glyph_map[c].glyph_bitmap_top = face->glyph->bitmap_top;
-        atlas_gl.glyph_map[c].glyph_bitmap_rows = face->glyph->bitmap.rows;
-        atlas_gl.glyph_map[c].glyph_advance_x = face->glyph->advance.x;
-
         //CALCULATE GLYPH TEXTURE COORDINATES
-        atlas_gl.glyph_map[c].u_coord_left = double(pen)/double(total_width);
-        atlas_gl.glyph_map[c].u_coord_right = double(pen + face->glyph->bitmap.width)/double(total_width);
-        atlas_gl.glyph_map[c].v_coord_top = 1.0;
-        atlas_gl.glyph_map[c].v_coord_bottom = 1.0 - (double(face->glyph->bitmap.rows)/double(max_rows));
+        atlas_gl.glyph_map[c].u_coord_left = double(x_pos)/double(TARGET_DIM);
+        atlas_gl.glyph_map[c].u_coord_right = double(x_pos + face->glyph->bitmap.width)/double(TARGET_DIM);
+        atlas_gl.glyph_map[c].v_coord_top = double(y_pos + face->glyph->bitmap.rows)/double(TARGET_DIM);
+        atlas_gl.glyph_map[c].v_coord_bottom = double(y_pos)/double(TARGET_DIM);
 
         //        cout << "ZNAK = " << c << endl;
         //        cout << "texture_offset = " << texture_u_offset << endl;
@@ -279,11 +442,11 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
         pen += face->glyph->bitmap.width;
     }
 
-    atlas_gl.atlas_width = total_width;
-    atlas_gl.atlas_rows = max_rows;
+    atlas_gl.atlas_width = TARGET_DIM;
+    atlas_gl.atlas_rows = TARGET_DIM;
 
-    glGenTextures(1, &atlas_gl.glyphAtlasTextureId);
-    glBindTexture(GL_TEXTURE_2D,  atlas_gl.glyphAtlasTextureId);
+    glGenTextures(1, &atlas_gl.square_AtlasTextureId);
+    glBindTexture(GL_TEXTURE_2D,  atlas_gl.square_AtlasTextureId);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, atlas_gl.atlas_width, atlas_gl.atlas_rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, atlas_tmp_buffer);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -292,9 +455,10 @@ void TextRenderer_v2::prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &
     glBindTexture (GL_TEXTURE_2D, 0);
 
     delete[] atlas_tmp_buffer;
+    free(rects);
 }
 
-void TextRenderer_v2::debugRenderAtlas(GLfloat x, GLfloat y)
+void TextRenderer_v2::debug_RenderSquareAtlas(GLfloat x, GLfloat y)
 {
     string text = "Atlas";
 
@@ -315,7 +479,7 @@ void TextRenderer_v2::debugRenderAtlas(GLfloat x, GLfloat y)
 
         glActiveTexture(GL_TEXTURE0);
         glUniform1i(textureMapLocation, 0);
-        glBindTexture(GL_TEXTURE_2D, current_atlas->glyphAtlasTextureId);
+        glBindTexture(GL_TEXTURE_2D, current_atlas->square_AtlasTextureId);
 
         glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
         glEnableVertexAttribArray(position_location);
@@ -365,7 +529,7 @@ void TextRenderer_v2::debugRenderAtlas(GLfloat x, GLfloat y)
 
 void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y)
 {
-//    debugRenderAtlas(x, y);
+//    debug_RenderSquareAtlas(x, y);
 //    return;
 
     GLfloat pen_x = x;
@@ -389,7 +553,7 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y)
 
         glActiveTexture(GL_TEXTURE0);
         glUniform1i(textureMapLocation, 0);
-        glBindTexture(GL_TEXTURE_2D, current_atlas->glyphAtlasTextureId);
+        glBindTexture(GL_TEXTURE_2D, current_atlas->square_AtlasTextureId);
 
         glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
         glEnableVertexAttribArray(position_location);

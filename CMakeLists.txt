@@ -13,6 +13,7 @@ include_directories(
 add_library (library_opengles_2 STATIC
     TextRenderer/TextRenderer_v1.cpp
     TextRenderer/TextRenderer_v2.cpp
+    TextRenderer/stb_rect_pack.cpp
     RectangleRenderer/Rectangle_Renderer.cpp
     RectangleRenderer/LineStrip_Renderer.cpp
     RectangleRenderer/Triangle_Renderer.cpp

@@ -37,7 +37,8 @@ public:
 
     unsigned int atlas_width;
     unsigned int atlas_rows;
-    GLuint glyphAtlasTextureId;
+    GLuint rectangle_AtlasTextureId;
+    GLuint square_AtlasTextureId;
 
     std::map<char, GlyphData> glyph_map;
 };
@@ -56,12 +57,15 @@ public:
     void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel);
 
 private:
-    void prepareOpenGLAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl);
+    void prepareOpenGLSquareAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl);
+    //void prepareOpenGLRectangleAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl);
+
     bool doOptymalization_2(GLfloat x_right);
     bool doOptymalization_1(GLfloat  x_left, GLfloat y_top, GLfloat y_bottom );
     GLuint prepareVBO(const GLfloat * data, GLsizeiptr size);
 
-    void debugRenderAtlas(GLfloat x, GLfloat y);
+    void debug_RenderRectangleAtlas(GLfloat x, GLfloat y);
+    void debug_RenderSquareAtlas(GLfloat x, GLfloat y);
 
     Atlas_gl * current_atlas;
 
