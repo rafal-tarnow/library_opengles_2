@@ -51,8 +51,8 @@ public:
 
     void onVievportResize(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels);
 
-    void Load(std::string fontFilePath, GLuint fontSize);
-    void LoadFromMemory(const unsigned char * fontFileData, int data_size, GLuint fontSize);
+    void Load(std::string fontName, std::string fontFilePath, GLuint fontSize);
+    void LoadFromMemory(std::string fontName, const unsigned char * fontFileData, int data_size, GLuint fontSize);
 
     void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel);
 
@@ -100,7 +100,7 @@ private:
     static GLint textColourLocation;
     static GLint projectionMatrixLocation;
 
-    static map<GLuint , Atlas_gl *> mapaAtlasow;
+    static map<string, map<GLuint , Atlas_gl *>> mapaAtlasow;
 
 };
 

@@ -50,7 +50,7 @@ GLint TextRenderer_v2::texCoord_attrib_location;
 GLint TextRenderer_v2::textureMapLocation;
 GLint TextRenderer_v2::textColourLocation;
 GLint TextRenderer_v2::projectionMatrixLocation;
-map<GLuint , Atlas_gl *> TextRenderer_v2::mapaAtlasow;
+map<string, map<GLuint , Atlas_gl *>> TextRenderer_v2::mapaAtlasow;
 
 
 static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
@@ -112,77 +112,85 @@ void TextRenderer_v2::onVievportResize(GLfloat viewport_width_in_pixels, GLfloat
     mProjection = glm::ortho(static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.z), static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.w));
 }
 
-void TextRenderer_v2::Load(std::string font, GLuint fontSize)
+void TextRenderer_v2::Load(std::string fontName, std::string fontFilePath, GLuint fontSize)
 {
-    if(mapaAtlasow.count(fontSize) == 1){
-        //jeżeli atlas juz istnieje
-        current_atlas = mapaAtlasow.at(fontSize);
-        return;
-    }else{
-        //w przeciwnym wypadku utworz nowy atlas
-
-        FT_Library ft;
-
-        if (FT_Init_FreeType(&ft))
+    //jeżeli atlas juz istnieje
+    if(mapaAtlasow.count(fontName) == 1 )
+    {
+        if(mapaAtlasow.at(fontName).count(fontSize) == 1)
         {
-            std::cout << "[ERROR]::FREETYPE: Could not init FreeType Library" << std::endl;
-            exit(-1);
+            current_atlas = mapaAtlasow.at(fontName).at(fontSize);
+            return;
         }
-
-        FT_Face face;
-        if (FT_New_Face(ft, font.c_str(), 0, &face))
-        {
-            std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-
-        Atlas_gl * atlas_gl = new Atlas_gl();
-
-        //prepareOpenGLRectangleAtlas(ft, face, fontSize, *atlas_gl);
-        prepareOpenGLSquareAtlas(ft, face, fontSize, *atlas_gl);
-
-        FT_Done_Face (face);
-        FT_Done_FreeType (ft);
-
-        mapaAtlasow[fontSize] = atlas_gl;
-        current_atlas = atlas_gl;
     }
+
+    //w przeciwnym wypadku utworz nowy atlas
+    FT_Library ft;
+
+    if (FT_Init_FreeType(&ft))
+    {
+        std::cout << "[ERROR]::FREETYPE: Could not init FreeType Library" << std::endl;
+        exit(-1);
+    }
+
+    FT_Face face;
+    if (FT_New_Face(ft, fontFilePath.c_str(), 0, &face))
+    {
+        std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    Atlas_gl * atlas_gl = new Atlas_gl();
+
+    //prepareOpenGLRectangleAtlas(ft, face, fontSize, *atlas_gl);
+    prepareOpenGLSquareAtlas(ft, face, fontSize, *atlas_gl);
+
+    FT_Done_Face (face);
+    FT_Done_FreeType (ft);
+
+    mapaAtlasow[fontName][fontSize] = atlas_gl;
+    current_atlas = atlas_gl;
+
 }
 
-void TextRenderer_v2::LoadFromMemory(const unsigned char * font_data, int data_size, GLuint fontSize)
+void TextRenderer_v2::LoadFromMemory(std::string fontName, const unsigned char * font_data, int data_size, GLuint fontSize)
 {
-    if(mapaAtlasow.count(fontSize) == 1){
-        //jeżeli atlas juz istnieje
-        current_atlas = mapaAtlasow.at(fontSize);
-        return;
-    }else{
-        //w przeciwnym wypadku utworz nowy atlas
-        FT_Library ft;
-
-        if (FT_Init_FreeType(&ft))
+    //jeżeli atlas juz istnieje
+    if(mapaAtlasow.count(fontName) == 1)
+    {
+        if(mapaAtlasow.at(fontName).count(fontSize) == 1)
         {
-            std::cout << "[ERROR]::FREETYPE: Could not init FreeType Library" << std::endl;
-            exit(-1);
+            current_atlas = mapaAtlasow.at(fontName).at(fontSize);
+            return;
         }
-
-        FT_Face face;
-        if (FT_New_Memory_Face(ft, (FT_Byte*)font_data, data_size, 0, &face))
-        {
-            std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-
-        Atlas_gl * atlas_gl = new Atlas_gl();
-
-        //prepareOpenGLRectangleAtlas(ft, face, fontSize, *atlas_gl);
-        prepareOpenGLSquareAtlas(ft, face, fontSize, *atlas_gl);
-
-        FT_Done_Face (face);
-        FT_Done_FreeType (ft);
-
-        mapaAtlasow[fontSize] = atlas_gl;
-        current_atlas = atlas_gl;
     }
+
+    //w przeciwnym wypadku utworz nowy atlas
+    FT_Library ft;
+
+    if (FT_Init_FreeType(&ft))
+    {
+        std::cout << "[ERROR]::FREETYPE: Could not init FreeType Library" << std::endl;
+        exit(-1);
+    }
+
+    FT_Face face;
+    if (FT_New_Memory_Face(ft, (FT_Byte*)font_data, data_size, 0, &face))
+    {
+        std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    Atlas_gl * atlas_gl = new Atlas_gl();
+
+    //prepareOpenGLRectangleAtlas(ft, face, fontSize, *atlas_gl);
+    prepareOpenGLSquareAtlas(ft, face, fontSize, *atlas_gl);
+
+    FT_Done_Face (face);
+    FT_Done_FreeType (ft);
+
+    mapaAtlasow[fontName][fontSize] = atlas_gl;
+    current_atlas = atlas_gl;
 }
 
 //Opengl texture bytes order
@@ -363,7 +371,7 @@ void TextRenderer_v2::prepareOpenGLSquareAtlas(FT_Library &ft, FT_Face &face, GL
     //INIT STB RECTS
     rects = (stbrp_rect*)malloc(sizeof(stbrp_rect)*atlas_gl.glyph_map.size());
 
-   for(char c = ' '; c <= 'z'; c++)
+    for(char c = ' '; c <= 'z'; c++)
     {
         rects[c - ' '].id = c;
         rects[c - ' '].w = atlas_gl.glyph_map[c].glyph_bitmap_width;
@@ -373,25 +381,25 @@ void TextRenderer_v2::prepareOpenGLSquareAtlas(FT_Library &ft, FT_Face &face, GL
         rects[c - ' '].was_packed = 0;
     }
 
-   int TARGET_DIM = minimal_texture_size;
-   int ret;
-   //TRY PACK RECTANGLES INTO SQUARE UNTIL SUCESSFULL
-   do{
-       struct stbrp_node * ptr_nodes = (struct stbrp_node *)malloc(sizeof(stbrp_node)*TARGET_DIM*2);
+    int TARGET_DIM = minimal_texture_size;
+    int ret;
+    //TRY PACK RECTANGLES INTO SQUARE UNTIL SUCESSFULL
+    do{
+        struct stbrp_node * ptr_nodes = (struct stbrp_node *)malloc(sizeof(stbrp_node)*TARGET_DIM*2);
 
-       stbrp_init_target(&context, TARGET_DIM, TARGET_DIM, ptr_nodes, TARGET_DIM*2);
-       ret = stbrp_pack_rects(&context, rects, atlas_gl.glyph_map.size());
+        stbrp_init_target(&context, TARGET_DIM, TARGET_DIM, ptr_nodes, TARGET_DIM*2);
+        ret = stbrp_pack_rects(&context, rects, atlas_gl.glyph_map.size());
 
-       free(ptr_nodes);
-       if(ret != 1)
-           TARGET_DIM = TARGET_DIM*2;
+        free(ptr_nodes);
+        if(ret != 1)
+            TARGET_DIM = TARGET_DIM*2;
 
-   }while(ret != 1);
+    }while(ret != 1);
 
-//   for (int i=0; i< atlas_gl.glyph_map.size(); i++)
-//   {
-//           printf("rect '%c' %i (pos.x = %hu, pos.y = %hu) (height = %hu, width = %hu) was_packed=%i\n", rects[i].id, rects[i].id, rects[i].x, rects[i].y, rects[i].h, rects[i].w, rects[i].was_packed);
-//   }
+    //   for (int i=0; i< atlas_gl.glyph_map.size(); i++)
+    //   {
+    //           printf("rect '%c' %i (pos.x = %hu, pos.y = %hu) (height = %hu, width = %hu) was_packed=%i\n", rects[i].id, rects[i].id, rects[i].x, rects[i].y, rects[i].h, rects[i].w, rects[i].was_packed);
+    //   }
 
 
     //ALLOCATE DATA FOR TEXTURE BUFFER
@@ -529,8 +537,8 @@ void TextRenderer_v2::debug_RenderSquareAtlas(GLfloat x, GLfloat y)
 
 void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y)
 {
-//    debug_RenderSquareAtlas(x, y);
-//    return;
+    //    debug_RenderSquareAtlas(x, y);
+    //    return;
 
     GLfloat pen_x = x;
     GLfloat pen_y = y;
