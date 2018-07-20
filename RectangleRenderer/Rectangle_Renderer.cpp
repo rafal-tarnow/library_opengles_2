@@ -63,10 +63,10 @@ static const GLchar* colour_fragment_shader_source =
 
 
 static GLfloat rectangle_vertices[] = {
-    1.0f,  1.0f, 0.0f,      1.0f, 1.0f,
-    1.0f, -1.0f, 0.0f,      1.0f, 0.0f,
-    -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,
-    -1.0f, 1.0f, 0.0f,      0.0f, 1.0f
+    1.0f,  1.0f, 0.0f,      1.0f, 1.0f,  //TOP RIGHT VERTICES
+    1.0f, -1.0f, 0.0f,      1.0f, 0.0f,  //BOTTOM RIGHT VERTICES
+    -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,  //BOTTOM LEFT VERTICES
+    -1.0f, 1.0f, 0.0f,      0.0f, 1.0f  //TOP RIGHT
 };
 
 static GLuint prepareVBO(GLsizeiptr size){
@@ -159,18 +159,33 @@ void DE_initRectangle(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat wid
     rectangle_vertices[0] = width_2;
     rectangle_vertices[1] = height_2;
     rectangle_vertices[2] = z;
+
+    rectangle_vertices[3] = 1.0f;
+    rectangle_vertices[4] = 1.0f;
+
     //BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = width_2;
     rectangle_vertices[6] = -height_2;
     rectangle_vertices[7] = z;
+
+    rectangle_vertices[8] = 1.0f;
+    rectangle_vertices[9] = 0.0f;
+
     //BOTTOM LEFT VERTICES
     rectangle_vertices[10] = -width_2;
     rectangle_vertices[11] = -height_2;
     rectangle_vertices[12] = z;
-    //
+
+    rectangle_vertices[13] = 0.0f;
+    rectangle_vertices[14] = 0.0f;
+
+    //TOP RIGHT
     rectangle_vertices[15] = -width_2;
     rectangle_vertices[16] = height_2;
     rectangle_vertices[17] = z;
+
+    rectangle_vertices[18] = 0.0f;
+    rectangle_vertices[19] = 1.0f;
 
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
@@ -194,20 +209,84 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GL
     rectangle_vertices[0] = width_2;
     rectangle_vertices[1] = height_2;
     rectangle_vertices[2] = z;
+
+    rectangle_vertices[3] = 1.0f;
+    rectangle_vertices[4] = 1.0f;
+
     //BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = width_2;
     rectangle_vertices[6] = -height_2;
     rectangle_vertices[7] = z;
+
+    rectangle_vertices[8] = 1.0f;
+    rectangle_vertices[9] = 0.0f;
+
     //BOTTOM LEFT VERTICES
     rectangle_vertices[10] = -width_2;
     rectangle_vertices[11] = -height_2;
     rectangle_vertices[12] = z;
+
+    rectangle_vertices[13] = 0.0f;
+    rectangle_vertices[14] = 0.0f;
+
     //
     rectangle_vertices[15] = -width_2;
     rectangle_vertices[16] = height_2;
     rectangle_vertices[17] = z;
 
+    rectangle_vertices[18] = 0.0f;
+    rectangle_vertices[19] = 1.0f;
+
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
+}
+
+void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * verticles, glm::vec2 * texCoords)
+{
+    if(shaderInited == 0)
+    {
+        initShader();
+    }
+
+
+    rectangle->texture_id = textureId;
+    rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
+
+
+
+    //TOP RIGHT VERTICES
+    rectangle_vertices[0] = verticles[0].x;
+    rectangle_vertices[1] = verticles[0].y;
+    rectangle_vertices[2] = verticles[0].z;
+
+    rectangle_vertices[3] = texCoords[0].x;
+    rectangle_vertices[4] = texCoords[0].y;
+
+    //BOTTOM RIGHT VERTICES
+    rectangle_vertices[5] = verticles[1].x;
+    rectangle_vertices[6] = verticles[1].y;
+    rectangle_vertices[7] = verticles[1].z;
+
+    rectangle_vertices[8] = texCoords[1].x;
+    rectangle_vertices[9] = texCoords[1].y;
+
+    //BOTTOM LEFT VERTICES
+    rectangle_vertices[10] = verticles[2].x;
+    rectangle_vertices[11] = verticles[2].y;
+    rectangle_vertices[12] = verticles[2].z;
+
+    rectangle_vertices[13] = texCoords[2].x;
+    rectangle_vertices[14] = texCoords[2].y;
+
+    //
+    rectangle_vertices[15] = verticles[3].x;
+    rectangle_vertices[16] = verticles[3].y;
+    rectangle_vertices[17] = verticles[3].z;
+
+    rectangle_vertices[18] = texCoords[3].x;
+    rectangle_vertices[19] = texCoords[3].y;
+
+    updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
+
 }
 
 void DE_initRectangle(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec3 position, glm::vec2 dimm)
@@ -233,20 +312,36 @@ void DE_initRectangle(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec3 posi
     rectangle_vertices[0] = width_2 + position.x;
     rectangle_vertices[1] = height_2 + position.y;
     rectangle_vertices[2] = position.z;
+
+    rectangle_vertices[3] = 1.0f;
+    rectangle_vertices[4] = 1.0f;
+
     //BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = width_2 + position.x;
     rectangle_vertices[6] = -height_2 + position.y;
     rectangle_vertices[7] = position.z;
+
+    rectangle_vertices[8] = 1.0f;
+    rectangle_vertices[9] = 0.0f;
+
     //BOTTOM LEFT VERTICES
     rectangle_vertices[10] = -width_2 + position.x;
     rectangle_vertices[11] = -height_2 + position.y;
     rectangle_vertices[12] = position.z;
+
+    rectangle_vertices[13] = 0.0f;
+    rectangle_vertices[14] = 0.0f;
+
     //
     rectangle_vertices[15] = -width_2 + position.x;
     rectangle_vertices[16] = height_2 + position.y;
     rectangle_vertices[17] = position.z;
 
+    rectangle_vertices[18] = 0.0f;
+    rectangle_vertices[19] = 1.0f;
+
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
+
 }
 
 void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, glm::vec3 position, glm::vec2 dimm)
@@ -268,20 +363,34 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, gl
     rectangle_vertices[0] = width_2 + position.x;
     rectangle_vertices[1] = height_2 + position.y;
     rectangle_vertices[2] = position.z;
+
+    rectangle_vertices[3] = 1.0f;
+    rectangle_vertices[4] = 1.0f;
+
     //BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = width_2 + position.x;
     rectangle_vertices[6] = -height_2 + position.y;
     rectangle_vertices[7] = position.z;
+
+    rectangle_vertices[8] = 1.0f;
+    rectangle_vertices[9] = 0.0f;
+
     //BOTTOM LEFT VERTICES
     rectangle_vertices[10] = -width_2 + position.x;
     rectangle_vertices[11] = -height_2 + position.y;
     rectangle_vertices[12] = position.z;
+
+    rectangle_vertices[13] = 0.0f;
+    rectangle_vertices[14] = 0.0f;
     //
     rectangle_vertices[15] = -width_2 + position.x;
     rectangle_vertices[16] = height_2 + position.y;
     rectangle_vertices[17] = position.z;
 
-    updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
+    rectangle_vertices[18] = 0.0f;
+    rectangle_vertices[19] = 1.0f;
+
+    updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));  
 }
 
 void DE_setDimm(DE_Rectangle * rectangle, glm::vec2 dimm)
@@ -311,41 +420,6 @@ void DE_setDimm(DE_Rectangle * rectangle, glm::vec2 dimm)
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
 
-//void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 position, glm::vec2 dimm)
-//{
-//    if(shaderInited == 0)
-//    {
-//        initShader();
-//    }
-
-
-
-//    rectangle->texture_id = textureId;
-//    rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
-
-//    GLfloat width_2 = dimm.x/2.0f;
-//    GLfloat height_2 = dimm.y/2.0f;
-//    GLfloat z = 0;
-
-//    //TOP RIGHT VERTICES
-//    rectangle_vertices[0] = width_2 + position.x;
-//    rectangle_vertices[1] = height_2 + position.y;
-//    rectangle_vertices[2] = position.z;
-//    //BOTTOM RIGHT VERTICES
-//    rectangle_vertices[5] = width_2 + position.x;
-//    rectangle_vertices[6] = -height_2 + position.y;
-//    rectangle_vertices[7] = position.z;
-//    //BOTTOM LEFT VERTICES
-//    rectangle_vertices[10] = -width_2 + position.x;
-//    rectangle_vertices[11] = -height_2 + position.y;
-//    rectangle_vertices[12] = position.z;
-//    //
-//    rectangle_vertices[15] = -width_2 + position.x;
-//    rectangle_vertices[16] = height_2 + position.y;
-//    rectangle_vertices[17] = position.z;
-
-//    updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
-//}
 
 void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm)
 {
@@ -367,18 +441,32 @@ void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm
     rectangle_vertices[0] = width_2;
     rectangle_vertices[1] = height_2;
     rectangle_vertices[2] = z;
+
+    rectangle_vertices[3] = 1.0f;
+    rectangle_vertices[4] = 1.0f;
+
     //BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = width_2;
     rectangle_vertices[6] = -height_2;
     rectangle_vertices[7] = z;
+
+    rectangle_vertices[8] = 1.0f;
+    rectangle_vertices[9] = 0.0f;
+
     //BOTTOM LEFT VERTICES
     rectangle_vertices[10] = -width_2;
     rectangle_vertices[11] = -height_2;
     rectangle_vertices[12] = z;
+
+    rectangle_vertices[13] = 0.0f;
+    rectangle_vertices[14] = 0.0f;
     //
     rectangle_vertices[15] = -width_2;
     rectangle_vertices[16] = height_2;
     rectangle_vertices[17] = z;
+
+    rectangle_vertices[18] = 0.0f;
+    rectangle_vertices[19] = 1.0f;
 
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
@@ -399,18 +487,33 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GL
     rectangle_vertices[0] = x_bottom_right;
     rectangle_vertices[1] = y_top_left;
     rectangle_vertices[2] = z;
+
+    rectangle_vertices[3] = 1.0f;
+    rectangle_vertices[4] = 1.0f;
+
     //BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = x_bottom_right;
     rectangle_vertices[6] = y_bottom_right;
     rectangle_vertices[7] = z;
+
+    rectangle_vertices[8] = 1.0f;
+    rectangle_vertices[9] = 0.0f;
+
     //BOTTOM LEFT VERTICES
     rectangle_vertices[10] = x_top_left;
     rectangle_vertices[11] = y_bottom_right;
     rectangle_vertices[12] = z;
+
+    rectangle_vertices[13] = 0.0f;
+    rectangle_vertices[14] = 0.0f;
+
     //TOP LEFT VERTICES
     rectangle_vertices[15] = x_top_left;
     rectangle_vertices[16] = y_top_left;
     rectangle_vertices[17] = z;
+
+    rectangle_vertices[18] = 0.0f;
+    rectangle_vertices[19] = 1.0f;
 
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
@@ -430,18 +533,33 @@ void DE_initRectangle_1(DE_Rectangle * rectangle, GLuint textureId, GLfloat x_to
     rectangle_vertices[0] = x_bottom_right;
     rectangle_vertices[1] = y_top_left;
     rectangle_vertices[2] = z;
+
+    rectangle_vertices[3] = 1.0f;
+    rectangle_vertices[4] = 1.0f;
+
     //BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = x_bottom_right;
     rectangle_vertices[6] = y_bottom_right;
     rectangle_vertices[7] = z;
+
+    rectangle_vertices[8] = 1.0f;
+    rectangle_vertices[9] = 0.0f;
+
     //BOTTOM LEFT VERTICES
     rectangle_vertices[10] = x_top_left;
     rectangle_vertices[11] = y_bottom_right;
     rectangle_vertices[12] = z;
+
+    rectangle_vertices[13] = 0.0f;
+    rectangle_vertices[14] = 0.0f;
+
     //TOP LEFT VERTICES
     rectangle_vertices[15] = x_top_left;
     rectangle_vertices[16] = y_top_left;
     rectangle_vertices[17] = z;
+
+    rectangle_vertices[18] = 0.0f;
+    rectangle_vertices[19] = 1.0f;
 
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }

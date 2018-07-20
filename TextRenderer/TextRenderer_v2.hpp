@@ -46,6 +46,14 @@ public:
 class TextRenderer_v2
 {
 public:
+    typedef enum
+    {
+        TEXT_LEFT,
+        TEXT_CENTER,
+        TEXT_RIGHT
+    }TextPosition;
+
+public:
     TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels,  glm::vec4 textColor = glm::vec4(1.0,0.0,0.0,1.0));
     ~TextRenderer_v2();
 
@@ -54,7 +62,7 @@ public:
     void Load(std::string fontName, std::string fontFilePath, GLuint fontSize);
     void LoadFromMemory(std::string fontName, const unsigned char * fontFileData, int data_size, GLuint fontSize);
 
-    void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel);
+    void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel, TextPosition textOffset = TEXT_RIGHT);
 
 private:
     void prepareOpenGLSquareAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl);
@@ -71,7 +79,7 @@ private:
 
     glm::vec4 viewport = glm::vec4(0,0,0,0);
     std::string previous_string;
-
+    GLfloat textLenght = 0.0f;
 
     //GOODS
     GLuint EBO;
@@ -90,7 +98,9 @@ private:
     };
 
     glm::vec4 mTextColour;
-    glm::mat4 mProjection;
+    glm::mat4 mProjection = glm::mat4(1);
+    glm::mat4 mView = glm::mat4(1);
+    glm::mat4 mModel = glm::mat4(1);
 
     //STATICS
     static GLuint shader_program;
@@ -99,6 +109,8 @@ private:
     static GLint textureMapLocation;
     static GLint textColourLocation;
     static GLint projectionMatrixLocation;
+    static GLint viewMatrixLocation;
+    static GLint modelMatrixLocation;
 
     static map<string, map<GLuint , Atlas_gl *>> mapaAtlasow;
 

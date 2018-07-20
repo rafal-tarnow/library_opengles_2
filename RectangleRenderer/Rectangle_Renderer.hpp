@@ -25,6 +25,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, gl
 //void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 position, glm::vec2 dimm);
 void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm);
 void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GLfloat width, GLfloat height, GLfloat z = 0.0f);
+void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * verticles, glm::vec2 * texCoords);
 void DE_initRectangle(DE_Rectangle * rectangle, GLuint * textureId, GLfloat width, GLfloat height, GLfloat z = 0.0f);
 void DE_initRectangle(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec3 position, glm::vec2 dimm);
 
