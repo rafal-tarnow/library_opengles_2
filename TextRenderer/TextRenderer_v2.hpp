@@ -62,6 +62,8 @@ public:
     void Load(std::string fontName, std::string fontFilePath, GLuint fontSize);
     void LoadFromMemory(std::string fontName, const unsigned char * fontFileData, int data_size, GLuint fontSize);
 
+
+    void setColour(glm::vec4 colour);
     void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel, TextPosition textOffset = TEXT_RIGHT);
 
 private:

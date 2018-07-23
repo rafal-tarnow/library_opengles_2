@@ -4,14 +4,25 @@
 
 #include <string>
 #include <map>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 
+
+
 class TextureManager {
 public:
-    static GLuint getTextureId(string filename);
-    static GLuint getTextureId(string filename, unsigned int flags);
-    static void deleteAllTextures();
+    static TextureManager * getInstance();
+    GLuint getTextureId(string filename);
+    GLuint getTextureId(string filename, unsigned int flags);
+    glm::vec2 getTextureSize(GLuint tetureId);
+protected:
+    TextureManager();
+    ~TextureManager();
 private:
-    static map<string , GLuint> mapaTesktur;
+    static TextureManager instance;
+    map<string , GLuint> mapaTesktur;
+    map<GLuint, glm::vec2> mapaRozmiarow;
 };

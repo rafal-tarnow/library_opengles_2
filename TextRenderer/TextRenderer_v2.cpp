@@ -541,6 +541,11 @@ void TextRenderer_v2::debug_RenderSquareAtlas(GLfloat x, GLfloat y)
     glUseProgram(0);
 }
 
+  void TextRenderer_v2::setColour(glm::vec4 colour)
+  {
+      mTextColour = colour;
+  }
+
 void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y, TextPosition origin)
 {
     //    debug_RenderSquareAtlas(x, y);

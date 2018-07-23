@@ -198,7 +198,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GL
     }
 
 
-    rectangle->texture_id = TextureManager::getTextureId(textureFilename);
+    rectangle->texture_id = TextureManager::getInstance()->getTextureId(textureFilename);
     rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
 
 
@@ -352,7 +352,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, gl
     }
 
 
-    rectangle->texture_id = TextureManager::getTextureId(textureFilename);
+    rectangle->texture_id = TextureManager::getInstance()->getTextureId(textureFilename);
     rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
 
 
@@ -480,7 +480,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GL
 
 
 
-    rectangle->texture_id = TextureManager::getTextureId(textureFilename);
+    rectangle->texture_id = TextureManager::getInstance()->getTextureId(textureFilename);
     rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
 
     //TOP RIGHT VERTICES
