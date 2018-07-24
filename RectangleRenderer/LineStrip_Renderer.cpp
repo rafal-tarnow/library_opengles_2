@@ -14,9 +14,11 @@ static const GLchar* vertex_shader_source =
         "uniform mat4 model;                    \n"
         "uniform mat4 view;                     \n"
         "uniform mat4 projection;               \n"
+        "uniform float pointSize;"
         "                                       \n"
         "void main() {                          \n"
         "   gl_Position =  projection * view * model * vec4(position, 1.0);  \n"
+        "   gl_PointSize = pointSize;                \n"
         "}                                      \n";
 
 
@@ -36,12 +38,12 @@ static GLuint generateVBO(){
     return vbo;
 }
 
-static void updateVBOdata(GLuint vbo, const GLvoid * data, GLsizeiptr number_of_bytes)
+static void updateVBOdata(GLuint vbo, const GLvoid * data, GLsizeiptr number_of_bytes, GLenum usage)
 {
     if((number_of_bytes>0) && (data!=nullptr) && (vbo!=0))
     {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, number_of_bytes, data, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, number_of_bytes, data, usage);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
@@ -51,6 +53,7 @@ static GLint viewMatrixLocation;
 static GLint modelMatrixLocation;
 static GLint position_location;
 static GLint colourLocation;
+static GLint pointSizeLocation;
 static GLuint shader_program;
 static int shaderInited = 0;
 
@@ -66,6 +69,7 @@ static GLuint initShader()
         viewMatrixLocation = glGetUniformLocation(shader_program, "view");
         modelMatrixLocation = glGetUniformLocation(shader_program, "model");
         colourLocation = glGetUniformLocation(shader_program, "colour");
+        pointSizeLocation = glGetUniformLocation(shader_program, "pointSize");
 
         shaderInited = 1;
     }
@@ -76,48 +80,61 @@ static GLuint initShader()
     return shader_program;
 }
 
-void LS_init(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize, glm::vec4 color)
+void LS_init(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize, glm::vec4 color, GLenum mode, GLenum vbo_usage)
 {
     if(shaderInited == 0)
     {
         initShader();
     }
 
-    glUseProgram(shader_program);
-    {
-        glUniform4fv(colourLocation,1,glm::value_ptr(color));
-    }
-    glUseProgram(0);
-
+    lineStrip->colour = color;
+    lineStrip->vbo_usage = vbo_usage;
+    lineStrip->mode = mode;
     lineStrip->numberOfVerticles = tableSize/3;
     lineStrip->vbo_id = generateVBO();
 
-    updateVBOdata(lineStrip->vbo_id, verticlesTable, tableSize * sizeof(float));
+    updateVBOdata(lineStrip->vbo_id, verticlesTable, tableSize * sizeof(float), lineStrip->vbo_usage);
 }
 
-void LS_init(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize, glm::vec4 color)
+void LS_init(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize, glm::vec4 color, GLenum mode, GLenum vbo_usage )
 {
     if(shaderInited == 0)
     {
         initShader();
     }
 
-    glUseProgram(shader_program);
-    {
-        glUniform4fv(colourLocation,1,glm::value_ptr(color));
-    }
-    glUseProgram(0);
-
+    lineStrip->colour = color;
+    lineStrip->vbo_usage = vbo_usage;
+    lineStrip->mode = mode;
     lineStrip->numberOfVerticles = tableSize;
     lineStrip->vbo_id = generateVBO();
 
-    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4);
+    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4, lineStrip->vbo_usage);
+}
+
+void LS_setMode(LS_LineStrip * lineStrip, GLenum mode)
+{
+    lineStrip->mode = mode;
+}
+
+void LS_setPointSize(LS_LineStrip * lineStrip, float pointSize)
+{
+    glUseProgram(shader_program);
+    {
+        glUniform1f(pointSizeLocation, pointSize);
+    }
+    glUseProgram(0);
+}
+
+void LS_setColour(LS_LineStrip * lineStrip, glm::vec4 colour)
+{
+    lineStrip->colour = colour;
 }
 
 void LS_updateData(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize)
 {
     lineStrip->numberOfVerticles = tableSize;
-    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4);
+    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4, lineStrip->vbo_usage);
 }
 
 
@@ -126,6 +143,7 @@ void LS_draw(LS_LineStrip * lineStrip, GLfloat width)
     glLineWidth(width);
     glUseProgram(shader_program);
     {
+        glUniform4fv(colourLocation,1,glm::value_ptr(lineStrip->colour));
         glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->projection));
         glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->view));
         glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->model));
@@ -136,7 +154,7 @@ void LS_draw(LS_LineStrip * lineStrip, GLfloat width)
             glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 
 
-            glDrawArrays(GL_LINE_STRIP, 0, lineStrip->numberOfVerticles);
+            glDrawArrays(lineStrip->mode, 0, lineStrip->numberOfVerticles);
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
