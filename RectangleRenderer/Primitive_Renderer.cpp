@@ -1,4 +1,4 @@
-#include "LineStrip_Renderer.hpp"
+#include "Primitive_Renderer.hpp"
 #include "../TextureManager/texture_manager.hpp"
 #include <iostream>
 #include "../../system_log.hpp"
@@ -14,25 +14,23 @@ static const GLchar* vertex_shader_source =
         "uniform mat4 model;                    \n"
         "uniform mat4 view;                     \n"
         "uniform mat4 projection;               \n"
+        "uniform float pointSize;"
         "                                       \n"
         "void main() {                          \n"
         "   gl_Position =  projection * view * model * vec4(position, 1.0);  \n"
+        "   gl_PointSize = pointSize;                \n"
         "}                                      \n";
 
 
 static const GLchar* fragment_shader_source =
         "#version 100                                               \n"
         "precision mediump float;                                   \n"
+        "uniform vec4 colour;                                       \n"
         "                                                           \n"
         "void main() {                                              \n"
-        "   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);                \n"
+        "   gl_FragColor = colour;                                  \n"
         "}                                                          \n";
 
-static GLfloat rectangle_vertices[] = {
-    1.0f,  5.0f, 0.0f,
-    4.0f, 4.0f, 0.0f,
-    8.0f, 1.0f, 0.0f,
-};
 
 static GLuint generateVBO(){
     GLuint vbo;
@@ -40,12 +38,12 @@ static GLuint generateVBO(){
     return vbo;
 }
 
-static void updateVBOdata(GLuint vbo, const GLvoid * data, GLsizeiptr number_of_bytes)
+static void updateVBOdata(GLuint vbo, const GLvoid * data, GLsizeiptr number_of_bytes, GLenum usage)
 {
     if((number_of_bytes>0) && (data!=nullptr) && (vbo!=0))
     {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, number_of_bytes, data, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, number_of_bytes, data, usage);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
@@ -54,6 +52,8 @@ static GLint projectionMatrixLocation;
 static GLint viewMatrixLocation;
 static GLint modelMatrixLocation;
 static GLint position_location;
+static GLint colourLocation;
+static GLint pointSizeLocation;
 static GLuint shader_program;
 static int shaderInited = 0;
 
@@ -68,6 +68,8 @@ static GLuint initShader()
         projectionMatrixLocation = glGetUniformLocation(shader_program, "projection");
         viewMatrixLocation = glGetUniformLocation(shader_program, "view");
         modelMatrixLocation = glGetUniformLocation(shader_program, "model");
+        colourLocation = glGetUniformLocation(shader_program, "colour");
+        pointSizeLocation = glGetUniformLocation(shader_program, "pointSize");
 
         shaderInited = 1;
     }
@@ -78,44 +80,70 @@ static GLuint initShader()
     return shader_program;
 }
 
-void TR_init(LS_LineStrip * lineStrip, float * verticlesTable, int tableSize)
+void PR_init(PR_LineStrip * lineStrip, float * verticlesTable, int tableSize, glm::vec4 color, GLenum mode, GLenum vbo_usage)
 {
     if(shaderInited == 0)
     {
         initShader();
     }
 
+    lineStrip->colour = color;
+    lineStrip->vbo_usage = vbo_usage;
+    lineStrip->mode = mode;
     lineStrip->numberOfVerticles = tableSize/3;
     lineStrip->vbo_id = generateVBO();
 
-    updateVBOdata(lineStrip->vbo_id, verticlesTable, tableSize * sizeof(float));
+    updateVBOdata(lineStrip->vbo_id, verticlesTable, tableSize * sizeof(float), lineStrip->vbo_usage);
 }
 
-void TR_init(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize)
+void PR_init(PR_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize, glm::vec4 color, GLenum mode, GLenum vbo_usage )
 {
     if(shaderInited == 0)
     {
         initShader();
     }
 
+    lineStrip->colour = color;
+    lineStrip->vbo_usage = vbo_usage;
+    lineStrip->mode = mode;
     lineStrip->numberOfVerticles = tableSize;
     lineStrip->vbo_id = generateVBO();
 
-    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4);
+    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4, lineStrip->vbo_usage);
 }
 
-void TR_updateData(LS_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize)
+void PR_setMode(PR_LineStrip * lineStrip, GLenum mode)
+{
+    lineStrip->mode = mode;
+}
+
+void PR_setPointSize(PR_LineStrip * lineStrip, float pointSize)
+{
+    glUseProgram(shader_program);
+    {
+        glUniform1f(pointSizeLocation, pointSize);
+    }
+    glUseProgram(0);
+}
+
+void PR_setColour(PR_LineStrip * lineStrip, glm::vec4 colour)
+{
+    lineStrip->colour = colour;
+}
+
+void PR_updateData(PR_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize)
 {
     lineStrip->numberOfVerticles = tableSize;
-    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4);
+    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4, lineStrip->vbo_usage);
 }
 
 
-void TR_draw(LS_LineStrip * lineStrip, GLfloat width)
+void PR_draw(PR_LineStrip * lineStrip, GLfloat width)
 {
     glLineWidth(width);
     glUseProgram(shader_program);
     {
+        glUniform4fv(colourLocation,1,glm::value_ptr(lineStrip->colour));
         glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->projection));
         glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->view));
         glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->model));
@@ -126,14 +154,14 @@ void TR_draw(LS_LineStrip * lineStrip, GLfloat width)
             glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 
 
-            glDrawArrays(GL_LINE_STRIP, 0, lineStrip->numberOfVerticles);
+            glDrawArrays(lineStrip->mode, 0, lineStrip->numberOfVerticles);
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     glUseProgram(0);
 }
 
-void TR_delete(LS_LineStrip * lineStrip)
+void PR_delete(PR_LineStrip * lineStrip)
 {
     glDeleteBuffers(1, &(lineStrip->vbo_id));
 }
