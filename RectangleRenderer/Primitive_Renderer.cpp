@@ -5,9 +5,9 @@
 
 using namespace std;
 
-static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
+static GLint compileShaders(const char *vertex_source, const char *fragment_source);
 
-static const GLchar* vertex_shader_source =
+static const GLchar* solid_vertex_shader_source =
         "#version 100                           \n"
         "attribute vec3 position;               \n"
         "                                       \n"
@@ -22,13 +22,41 @@ static const GLchar* vertex_shader_source =
         "}                                      \n";
 
 
-static const GLchar* fragment_shader_source =
+static const GLchar* solid_fragment_shader_source =
         "#version 100                                               \n"
         "precision mediump float;                                   \n"
         "uniform vec4 colour;                                       \n"
         "                                                           \n"
         "void main() {                                              \n"
         "   gl_FragColor = colour;                                  \n"
+        "}                                                          \n";
+
+static const GLchar* texture_vertex_shader_source =
+        "#version 100                           \n"
+        "//Rectangle_Renderer vertex shader     \n"
+        "attribute vec3 position;               \n"
+        "attribute vec2 texCoord;               \n"
+        "varying vec2 v_TexCoordinate;          \n"
+        "                                       \n"
+        "uniform mat4 model;                    \n"
+        "uniform mat4 view;                     \n"
+        "uniform mat4 projection;               \n"
+        "                                       \n"
+        "void main() {                          \n"
+        "   gl_Position =  projection * view * model * vec4(position, 1.0);  \n"
+        "   v_TexCoordinate = texCoord;         \n"
+        "}                                      \n";
+
+
+static const GLchar* texture_fragment_shader_source =
+        "#version 100                                               \n"
+        "//Rectangle_Renderer fragmet shader                        \n"
+        "precision mediump float;                                   \n"
+        "varying vec2 v_TexCoordinate;                              \n"
+        "uniform sampler2D textureUnit;                             \n"
+        "                                                           \n"
+        "void main() {                                              \n"
+        "   gl_FragColor = texture2D(textureUnit,v_TexCoordinate);    \n"
         "}                                                          \n";
 
 
@@ -43,127 +71,183 @@ static void updateVBOdata(GLuint vbo, const GLvoid * data, GLsizeiptr number_of_
     if((number_of_bytes>0) && (data!=nullptr) && (vbo!=0))
     {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, number_of_bytes, data, usage);
+        {
+            glBufferData(GL_ARRAY_BUFFER, number_of_bytes, data, usage);
+        }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
 
-static GLint projectionMatrixLocation;
-static GLint viewMatrixLocation;
-static GLint modelMatrixLocation;
-static GLint position_location;
-static GLint colourLocation;
-static GLint pointSizeLocation;
-static GLuint shader_program;
-static int shaderInited = 0;
+//COLOUR PROGRAM LOCATIONS
+static GLint solid_projectionMatrixLocation;
+static GLint solid_viewMatrixLocation;
+static GLint solid_modelMatrixLocation;
+static GLint solid_position_location;
+static GLint solid_colourLocation;
+static GLint solid_pointSizeLocation;
+static GLuint solid_shader_program;
 
-static GLuint initShader()
+//TEXTURE PROGRAM LOCATIONS
+static GLint position_location_tex;
+static GLint texCoord_attrib_location_tex;
+static GLint textureUnitLocation_tex;
+static GLint projectionMatrixLocation_tex;
+static GLint viewMatrixLocation_tex;
+static GLint modelMatrixLocation_tex;
+static GLuint texture_shader_program;
+
+
+static int solidColourShaderInited = 0;
+static int textureShaderInited = 0;
+
+static GLuint initSolidColourShader()
 {
-    if(shaderInited == 0)
+    assert(solidColourShaderInited == 0);
+    if(solidColourShaderInited == 0)
     {
-        shader_program = compileShaders(vertex_shader_source, fragment_shader_source);
-
-        position_location = glGetAttribLocation(shader_program, "position");
-
-        projectionMatrixLocation = glGetUniformLocation(shader_program, "projection");
-        viewMatrixLocation = glGetUniformLocation(shader_program, "view");
-        modelMatrixLocation = glGetUniformLocation(shader_program, "model");
-        colourLocation = glGetUniformLocation(shader_program, "colour");
-        pointSizeLocation = glGetUniformLocation(shader_program, "pointSize");
-
-        shaderInited = 1;
+        solid_shader_program = compileShaders(solid_vertex_shader_source, solid_fragment_shader_source);
+        
+        solid_position_location = glGetAttribLocation(solid_shader_program, "position");
+        
+        solid_projectionMatrixLocation = glGetUniformLocation(solid_shader_program, "projection");
+        solid_viewMatrixLocation = glGetUniformLocation(solid_shader_program, "view");
+        solid_modelMatrixLocation = glGetUniformLocation(solid_shader_program, "model");
+        solid_colourLocation = glGetUniformLocation(solid_shader_program, "colour");
+        solid_pointSizeLocation = glGetUniformLocation(solid_shader_program, "pointSize");
+        
+        solidColourShaderInited = 1;
     }
     else
     {
         cout << "[WARNING] shader arlady compiled" << endl;
     }
-    return shader_program;
+    return solid_shader_program;
 }
 
-void PR_init(PR_LineStrip * lineStrip, float * verticlesTable, int tableSize, glm::vec4 color, GLenum mode, GLenum vbo_usage)
-{
-    if(shaderInited == 0)
+void initTextureShader(){
+    assert(textureShaderInited == 0);
+    if(textureShaderInited == 0)
     {
-        initShader();
+        texture_shader_program = compileShaders(texture_vertex_shader_source, texture_fragment_shader_source);
+        
+        position_location_tex = glGetAttribLocation(texture_shader_program, "position");
+        texCoord_attrib_location_tex = glGetAttribLocation(texture_shader_program,"texCoord");
+        textureUnitLocation_tex = glGetUniformLocation (texture_shader_program, "textureUnit" );
+        
+        projectionMatrixLocation_tex = glGetUniformLocation(texture_shader_program, "projection");
+        viewMatrixLocation_tex = glGetUniformLocation(texture_shader_program, "view");
+        modelMatrixLocation_tex = glGetUniformLocation(texture_shader_program, "model");
+        
+        textureShaderInited = 1;
     }
-
-    lineStrip->colour = color;
-    lineStrip->vbo_usage = vbo_usage;
-    lineStrip->mode = mode;
-    lineStrip->numberOfVerticles = tableSize/3;
-    lineStrip->vbo_id = generateVBO();
-
-    updateVBOdata(lineStrip->vbo_id, verticlesTable, tableSize * sizeof(float), lineStrip->vbo_usage);
-}
-
-void PR_init(PR_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize, glm::vec4 color, GLenum mode, GLenum vbo_usage )
-{
-    if(shaderInited == 0)
+    else
     {
-        initShader();
+        cout << "[WARNING] shader arlady compiled" << endl;
     }
-
-    lineStrip->colour = color;
-    lineStrip->vbo_usage = vbo_usage;
-    lineStrip->mode = mode;
-    lineStrip->numberOfVerticles = tableSize;
-    lineStrip->vbo_id = generateVBO();
-
-    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4, lineStrip->vbo_usage);
 }
 
-void PR_setMode(PR_LineStrip * lineStrip, GLenum mode)
-{
-    lineStrip->mode = mode;
-}
 
-void PR_setPointSize(PR_LineStrip * lineStrip, float pointSize)
+
+void PR_init(Primitive * primitive, float * verticlesTable, int tableSize, glm::vec4 color, GLenum mode, GLenum vbo_usage)
 {
-    glUseProgram(shader_program);
+    if(solidColourShaderInited == 0)
     {
-        glUniform1f(pointSizeLocation, pointSize);
+        initSolidColourShader();
+    }
+    
+    primitive->colour = color;
+    primitive->vbo_usage = vbo_usage;
+    primitive->mode = mode;
+    primitive->numberOfVerticles = tableSize/3;
+    primitive->vbo_id = generateVBO();
+    
+    updateVBOdata(primitive->vbo_id, verticlesTable, tableSize * sizeof(float), primitive->vbo_usage);
+}
+
+void PR_init(Primitive * primitive, glm::vec3 * verticlesTable, int tableSize, glm::vec4 color, GLenum mode, GLenum vbo_usage )
+{
+    if(solidColourShaderInited == 0)
+    {
+        initSolidColourShader();
+    }
+    
+    primitive->colour = color;
+    primitive->vbo_usage = vbo_usage;
+    primitive->mode = mode;
+    primitive->numberOfVerticles = tableSize;
+    primitive->vbo_id = generateVBO();
+    
+    updateVBOdata(primitive->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4, primitive->vbo_usage);
+}
+
+void PR_setMode(Primitive * primitive, GLenum mode)
+{
+    primitive->mode = mode;
+}
+
+void PR_setPointSize(Primitive * primitive, float pointSize)
+{
+    glUseProgram(solid_shader_program);
+    {
+        glUniform1f(solid_pointSizeLocation, pointSize);
     }
     glUseProgram(0);
 }
 
-void PR_setColour(PR_LineStrip * lineStrip, glm::vec4 colour)
+void PR_setColour(Primitive * primitive, glm::vec4 colour)
 {
-    lineStrip->colour = colour;
+    primitive->colour = colour;
 }
 
-void PR_updateData(PR_LineStrip * lineStrip, glm::vec3 * verticlesTable, int tableSize)
+void PR_setTexture(Primitive * primitive, GLuint texture)
 {
-    lineStrip->numberOfVerticles = tableSize;
-    updateVBOdata(lineStrip->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4, lineStrip->vbo_usage);
-}
-
-
-void PR_draw(PR_LineStrip * lineStrip, GLfloat width)
-{
-    glLineWidth(width);
-    glUseProgram(shader_program);
+    if(textureShaderInited == 0)
     {
-        glUniform4fv(colourLocation,1,glm::value_ptr(lineStrip->colour));
-        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->projection));
-        glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->view));
-        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(lineStrip->model));
+        initTextureShader();
+    }
+    primitive->texture_id = texture;
+}
 
-        glBindBuffer(GL_ARRAY_BUFFER, lineStrip->vbo_id);
+void PR_setVerticles(Primitive * primitive, glm::vec3 * verticlesTable, int tableSize)
+{
+    primitive->numberOfVerticles = tableSize;
+    updateVBOdata(primitive->vbo_id, glm::value_ptr(verticlesTable[0]), tableSize*3*4, primitive->vbo_usage);
+}
+
+
+void PR_draw(Primitive * primitive, GLfloat width)
+{
+    if(primitive->texture_id != 0)
+    {
+        
+    }
+    else
+    {
+        glLineWidth(width);
+        glUseProgram(solid_shader_program);
         {
-            glEnableVertexAttribArray(position_location);
-            glVertexAttribPointer(position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-
-
-            glDrawArrays(lineStrip->mode, 0, lineStrip->numberOfVerticles);
+            glUniform4fv(solid_colourLocation,1,glm::value_ptr(primitive->colour));
+            glUniformMatrix4fv(solid_projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(primitive->projection));
+            glUniformMatrix4fv(solid_viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(primitive->view));
+            glUniformMatrix4fv(solid_modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(primitive->model));
+            
+            glBindBuffer(GL_ARRAY_BUFFER, primitive->vbo_id);
+            {
+                glEnableVertexAttribArray(solid_position_location);
+                glVertexAttribPointer(solid_position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+                
+                
+                glDrawArrays(primitive->mode, 0, primitive->numberOfVerticles);
+            }
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glUseProgram(0);
     }
-    glUseProgram(0);
 }
 
-void PR_delete(PR_LineStrip * lineStrip)
+void PR_delete(Primitive * primitive)
 {
-    glDeleteBuffers(1, &(lineStrip->vbo_id));
+    glDeleteBuffers(1, &(primitive->vbo_id));
 }
 
 
@@ -174,7 +258,7 @@ GLint compileShaders(const char *vertex_shader_source, const char *fragment_shad
     GLint shader_program;
     GLint success;
     GLint vertex_shader;
-
+    
     /* Vertex shader */
     vertex_shader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
@@ -185,7 +269,7 @@ GLint compileShaders(const char *vertex_shader_source, const char *fragment_shad
         printf("ERROR::SHADER::VERTEX::COMPILATION_FAILED: %s\n%s\n",vertex_shader_source, infoLog);
         exit(-1);
     }
-
+    
     /* Fragment shader */
     fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, &fragment_shader_source, NULL);
@@ -196,7 +280,7 @@ GLint compileShaders(const char *vertex_shader_source, const char *fragment_shad
         printf("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED: %s\n%s\n",fragment_shader_source, infoLog);
         exit(-1);
     }
-
+    
     /* Link shaders */
     shader_program = glCreateProgram();
     glAttachShader(shader_program, vertex_shader);
@@ -208,7 +292,7 @@ GLint compileShaders(const char *vertex_shader_source, const char *fragment_shad
         printf("ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n", infoLog);
         exit(-1);
     }
-
+    
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
     return shader_program;

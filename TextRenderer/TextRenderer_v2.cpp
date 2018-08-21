@@ -548,11 +548,12 @@ void TextRenderer_v2::debug_RenderSquareAtlas(GLfloat x, GLfloat y)
 
 void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y, TextPosition origin)
 {
-    //    debug_RenderSquareAtlas(x, y);
-    //    return;
+        //debug_RenderSquareAtlas(x, y);
+        //return;
 
-    GLfloat pen_x = 0;
-    GLfloat pen_y = 0;
+    GLfloat pen_x_float = 0;
+    int pen_x_int = 0;
+    GLfloat pen_y_float = 0;
     GLfloat x_left = 0.0f;
     GLfloat x_right = 0.0f;
     GLfloat y_top = 0.0f;
@@ -592,10 +593,26 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y, TextPo
             {
                 atlasCharData_tmp = current_atlas->glyph_map[*c];
 
-                x_left = pen_x + atlasCharData_tmp.glyph_bitmap_left;
+                x_left = pen_x_int + atlasCharData_tmp.glyph_bitmap_left;
                 x_right = x_left + atlasCharData_tmp.glyph_bitmap_width;
-                y_top = pen_y + atlasCharData_tmp.glyph_bitmap_top;
+                y_top = pen_y_float + atlasCharData_tmp.glyph_bitmap_top;
                 y_bottom = y_top - atlasCharData_tmp.glyph_bitmap_rows;
+
+                cout << " FOR LETTER " << *c << endl;
+
+                cout << "   DIMMENSIONS:" << endl;
+                cout << "   atlasCharData_tmp.glyph_bitmap_left = " << atlasCharData_tmp.glyph_bitmap_left << endl;
+                cout << "   atlasCharData_tmp.glyph_bitmap_width = " << atlasCharData_tmp.glyph_bitmap_width << endl;
+                cout << "   atlasCharData_tmp.glyph_bitmap_top = " << atlasCharData_tmp.glyph_bitmap_top << endl;
+                cout << "   atlasCharData_tmp.glyph_bitmap_rows = " << atlasCharData_tmp.glyph_bitmap_rows << endl;
+
+
+                cout << "  POSIOTIONS: " << endl;
+                cout << "   x_left = " << x_left << endl;
+                cout << "   x_right = " << x_right << endl;
+                cout << "   y_top = " << y_top << endl;
+                cout << "   y_bottom = " << y_bottom << endl;
+
 
                 if(doOptymalization_1(x + x_left,y + y_top,y + y_bottom)){
                     break;
@@ -632,7 +649,8 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y, TextPo
                 verticles_table[19 + index] = atlasCharData_tmp.v_coord_bottom;
 
 
-                pen_x += ((GLfloat)(atlasCharData_tmp.glyph_advance_x))/64.0f;
+                pen_x_float += ((GLfloat)(atlasCharData_tmp.glyph_advance_x));
+                pen_x_int = pen_x_float/64.0f;
                 index += 20;
             }
             textLenght = x_right;
@@ -645,11 +663,12 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y, TextPo
         //glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(mView));
 
         if(origin == TEXT_RIGHT)
-            mModel = glm::translate(glm::mat4(1),glm::vec3(x, y, 0));
+            mModel = glm::translate(glm::mat4(1),glm::vec3(round(x), round(y), 0));
         else if(origin == TEXT_CENTER)
-            mModel = glm::translate(glm::mat4(1),glm::vec3(x - textLenght/2.0f, y, 0));
+            mModel = glm::translate(glm::mat4(1),glm::vec3(round(x - textLenght/2.0f), round(y), 0));
         else if(origin == TEXT_LEFT)
-             mModel = glm::translate(glm::mat4(1),glm::vec3(x - textLenght, y, 0));
+             mModel = glm::translate(glm::mat4(1),glm::vec3(round(x - textLenght), round(y), 0));
+
 
         glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(mModel));
 
