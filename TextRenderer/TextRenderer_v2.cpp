@@ -218,99 +218,6 @@ inline unsigned int index_bufora(int column, int row, int texture_width)
 }
 
 
-//void TextRenderer_v2::prepareOpenGLRectangleAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl){
-
-//    if(FT_Select_Charmap(face, FT_ENCODING_UNICODE ))
-//        std::cout << "ERROR Select Charmap" << std::endl;
-
-//    FT_Set_Pixel_Sizes(face, 0, fontSize);
-
-//    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-//    //CALCULATE TOTAL WIDTH AND MAX HEIGHT TO KNOW HOW MUCH BUFFER ALOCATE
-//    unsigned int max_rows = 0;
-//    int total_width = 0;
-
-//    for(char c = ' '; c <= 'z'; c++)
-//    {
-//        //LOAD ONE CHAR DATA
-//        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-//        {
-//            std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
-//            continue;
-//        }
-//        //UPDATE MAX GLYPH WIDTH and MAX GLYPH HEIGHT
-//        if(face->glyph->bitmap.rows > max_rows){
-//            max_rows = face->glyph->bitmap.rows;
-//        }
-//        total_width += face->glyph->bitmap.width;
-//    }
-
-
-//    unsigned char *  atlas_tmp_buffer = new unsigned char[(int)((total_width)*(max_rows))];
-//    unsigned int buff_size = total_width*max_rows;
-
-//    for(unsigned int i = 0; i < buff_size; i++)
-//    {
-//        atlas_tmp_buffer[i] = 0;
-//    }
-
-//    int pen = 0;
-
-//    for(char c = ' '; c <= 'z'; c++)
-//    {
-//        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-//        {
-//            std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
-//            continue;
-//        }
-
-//        for(unsigned int bitmap_row_index = 0; bitmap_row_index < (unsigned int)(face->glyph->bitmap.rows); bitmap_row_index++)
-//        {
-//            for(unsigned int bitmap_column_index = 0; bitmap_column_index < (unsigned int)((face->glyph->bitmap.width)); bitmap_column_index++)
-//            {
-//                unsigned int index = index_bufora(pen + bitmap_column_index,(max_rows - 1) - bitmap_row_index, total_width);
-//                atlas_tmp_buffer[index] = face->glyph->bitmap.buffer[bitmap_column_index + bitmap_row_index*(int)(face->glyph->bitmap.width)];
-//            }
-//        }
-
-//        atlas_gl.glyph_map[c].glyph_bitmap_width = face->glyph->bitmap.width;
-//        atlas_gl.glyph_map[c].glyph_bitmap_left = face->glyph->bitmap_left;
-//        atlas_gl.glyph_map[c].glyph_bitmap_top = face->glyph->bitmap_top;
-//        atlas_gl.glyph_map[c].glyph_bitmap_rows = face->glyph->bitmap.rows;
-//        atlas_gl.glyph_map[c].glyph_advance_x = face->glyph->advance.x;
-
-//        //CALCULATE GLYPH TEXTURE COORDINATES
-//        atlas_gl.glyph_map[c].u_coord_left = double(pen)/double(total_width);
-//        atlas_gl.glyph_map[c].u_coord_right = double(pen + face->glyph->bitmap.width)/double(total_width);
-//        atlas_gl.glyph_map[c].v_coord_top = 1.0;
-//        atlas_gl.glyph_map[c].v_coord_bottom = 1.0 - (double(face->glyph->bitmap.rows)/double(max_rows));
-
-//        //        cout << "ZNAK = " << c << endl;
-//        //        cout << "texture_offset = " << texture_u_offset << endl;
-//        //        cout << "glyph->bitmap.width = " << atlas_gl.glyph_map[c].glyph_bitmap_width << endl;
-//        //        cout << "glyph->bitmap.rows = " << atlas_gl.glyph_map[c].glyph_bitmap_rows << endl;
-//        //        cout <<  "charactersMap[c].u_coord_left = " << atlas_gl.glyph_map[c].u_coord_left << endl;
-//        //        cout << "charactersMap[c].u_coord_right = " << atlas_gl.glyph_map[c].u_coord_right << endl;
-
-//        pen += face->glyph->bitmap.width;
-//    }
-
-//    atlas_gl.atlas_width = total_width;
-//    atlas_gl.atlas_rows = max_rows;
-
-//    glGenTextures(1, &atlas_gl.rectangle_AtlasTextureId);
-//    glBindTexture(GL_TEXTURE_2D,  atlas_gl.rectangle_AtlasTextureId);
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, atlas_gl.atlas_width, atlas_gl.atlas_rows, 0, GL_ALPHA, GL_UNSIGNED_BYTE, atlas_tmp_buffer);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//    glBindTexture (GL_TEXTURE_2D, 0);
-
-//    delete[] atlas_tmp_buffer;
-//}
-
 stbrp_context context;
 struct stbrp_rect * rects;
 
@@ -541,15 +448,23 @@ void TextRenderer_v2::debug_RenderSquareAtlas(GLfloat x, GLfloat y)
     glUseProgram(0);
 }
 
-  void TextRenderer_v2::setColour(glm::vec4 colour)
-  {
-      mTextColour = colour;
-  }
+void TextRenderer_v2::setColour(glm::vec4 colour)
+{
+    mTextColour = colour;
+}
+
+
 
 void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y, TextPosition origin)
 {
-        //debug_RenderSquareAtlas(x, y);
-        //return;
+    mModel = glm::translate(glm::mat4(1),glm::vec3(round(x), round(y), 0));
+    RenderText(text,mModel,origin);
+}
+
+void TextRenderer_v2::RenderText(std::string text, glm::mat4 model, TextPosition origin)
+{
+    //debug_RenderSquareAtlas(x, y);
+    //return;
 
     GLfloat pen_x_float = 0;
     int pen_x_int = 0;
@@ -614,11 +529,11 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y, TextPo
                 cout << "   y_bottom = " << y_bottom << endl;
 
 
-                if(doOptymalization_1(x + x_left,y + y_top,y + y_bottom)){
-                    break;
-                }else if(doOptymalization_2(x + x_right)){
-                    continue;
-                }
+                //                if(doOptymalization_1(x + x_left,y + y_top,y + y_bottom)){
+                //                    break;
+                //                }else if(doOptymalization_2(x + x_right)){
+                //                    continue;
+                //                }
 
                 //VERTICLE LEFT TOP 0
                 verticles_table[0 + index] = x_left;    //verticle x pos
@@ -662,15 +577,31 @@ void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y, TextPo
         glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(mProjection));
         //glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(mView));
 
+
+//        static float angle = 0.0f;
+//        angle = angle + 0.15f;
+//        model = glm::rotate(model, glm::radians(angle), glm::vec3(0,0,1.0));
+
+//        static float scale = 1.0f;
+//        static float time = 0;
+//        time = time + 0.001;
+//        scale = cos(time)/4.0f + 0.5;
+
+//        model = glm::scale(model, glm::vec3(scale, scale, 1.0));
+
+
         if(origin == TEXT_RIGHT)
-            mModel = glm::translate(glm::mat4(1),glm::vec3(round(x), round(y), 0));
+            ;
         else if(origin == TEXT_CENTER)
-            mModel = glm::translate(glm::mat4(1),glm::vec3(round(x - textLenght/2.0f), round(y), 0));
+            model = glm::translate(model, glm::vec3(round(- textLenght/2.0f), 0, 0));
         else if(origin == TEXT_LEFT)
-             mModel = glm::translate(glm::mat4(1),glm::vec3(round(x - textLenght), round(y), 0));
+            model = glm::translate(model, glm::vec3(round(- textLenght), 0, 0));
 
 
-        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(mModel));
+
+
+
+        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(model));
 
 
         glDrawElements(GL_TRIANGLES, 6*text.size(), GL_UNSIGNED_INT, 0);

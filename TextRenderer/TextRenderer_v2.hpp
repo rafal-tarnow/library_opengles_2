@@ -64,7 +64,8 @@ public:
 
 
     void setColour(glm::vec4 colour);
-    void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel, TextPosition textOffset = TEXT_RIGHT);
+    void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel, TextPosition origin = TEXT_RIGHT);
+    void RenderText(std::string text, glm::mat4 model, TextPosition origin = TEXT_RIGHT);
 
 private:
     void prepareOpenGLSquareAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl);
