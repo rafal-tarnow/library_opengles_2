@@ -26,7 +26,7 @@ static const GLchar* vertex_shader_source =
         "uniform mat4 projection;                   \n"
         "                                           \n"
         "void main() {                              \n"
-        "   gl_Position = projection /** view*/ * model * vec4(position, 1.0);  \n"
+        "   gl_Position = projection * view * model * vec4(position, 1.0);  \n"
         "   v_TexCoordinate = texCoord;             \n"
         "}                                          \n";
 
@@ -113,7 +113,10 @@ void TextRenderer_v2::onVievportResize(GLfloat viewport_width_in_pixels, GLfloat
     viewport.z = viewport_width_in_pixels;
     viewport.w = viewport_height_in_pixels;
 
-    mProjection = glm::ortho(static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.z), static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.w));
+    if(useCustomPV == false)
+    {
+        mProjection = glm::ortho(static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.z), static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.w));
+    }
 }
 
 void TextRenderer_v2::Load(std::string fontName, std::string fontFilePath, GLuint fontSize)
@@ -393,7 +396,7 @@ void TextRenderer_v2::debug_RenderSquareAtlas(GLfloat x, GLfloat y)
         glUniform4fv(textColourLocation,1,glm::value_ptr(mTextColour));
         glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(mProjection));
         glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(mView));
-        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(mModel));
+        glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(glm::mat4(1)));
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -453,18 +456,24 @@ void TextRenderer_v2::setColour(glm::vec4 colour)
     mTextColour = colour;
 }
 
+void TextRenderer_v2::setCustomPV(glm::mat4 P, glm::mat4 V)
+{
+    mProjection = P;
+    mView = V;
+    useCustomPV = true;
+}
 
 
 void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y, TextPosition origin)
 {
-    mModel = glm::translate(glm::mat4(1),glm::vec3(round(x), round(y), 0));
-    RenderText(text,mModel,origin);
+    glm::mat4 Model = glm::translate(glm::mat4(1),glm::vec3(round(x), round(y), 0));
+    RenderText(text,Model,origin);
 }
 
 void TextRenderer_v2::RenderText(std::string text, glm::mat4 model, TextPosition origin)
 {
-    //debug_RenderSquareAtlas(x, y);
-    //return;
+    //    debug_RenderSquareAtlas(0, 0);
+    //    return;
 
     GLfloat pen_x_float = 0;
     int pen_x_int = 0;
@@ -573,21 +582,18 @@ void TextRenderer_v2::RenderText(std::string text, glm::mat4 model, TextPosition
             glBufferSubData (GL_ARRAY_BUFFER, 0, sizeof(verticles_table), verticles_table);
         }
 
-        glUniform4fv(textColourLocation,1,glm::value_ptr(mTextColour));
-        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(mProjection));
-        //glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(mView));
 
 
-//        static float angle = 0.0f;
-//        angle = angle + 0.15f;
-//        model = glm::rotate(model, glm::radians(angle), glm::vec3(0,0,1.0));
+        //        static float angle = 0.0f;
+        //        angle = angle + 0.15f;
+        //        model = glm::rotate(model, glm::radians(angle), glm::vec3(0,0,1.0));
 
-//        static float scale = 1.0f;
-//        static float time = 0;
-//        time = time + 0.001;
-//        scale = cos(time)/4.0f + 0.5;
+        //        static float scale = 1.0f;
+        //        static float time = 0;
+        //        time = time + 0.001;
+        //        scale = cos(time)/4.0f + 0.5;
 
-//        model = glm::scale(model, glm::vec3(scale, scale, 1.0));
+        //        model = glm::scale(model, glm::vec3(scale, scale, 1.0));
 
 
         if(origin == TEXT_RIGHT)
@@ -598,11 +604,12 @@ void TextRenderer_v2::RenderText(std::string text, glm::mat4 model, TextPosition
             model = glm::translate(model, glm::vec3(round(- textLenght), 0, 0));
 
 
-
-
+        glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(mProjection));
+        glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(mView));
 
         glUniformMatrix4fv(modelMatrixLocation, 1, GL_FALSE, glm::value_ptr(model));
 
+        glUniform4fv(textColourLocation,1,glm::value_ptr(mTextColour));
 
         glDrawElements(GL_TRIANGLES, 6*text.size(), GL_UNSIGNED_INT, 0);
 

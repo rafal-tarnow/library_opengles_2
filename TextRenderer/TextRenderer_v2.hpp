@@ -64,6 +64,7 @@ public:
 
 
     void setColour(glm::vec4 colour);
+    void setCustomPV(glm::mat4 P, glm::mat4 V);
     void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel, TextPosition origin = TEXT_RIGHT);
     void RenderText(std::string text, glm::mat4 model, TextPosition origin = TEXT_RIGHT);
 
@@ -101,9 +102,10 @@ private:
     };
 
     glm::vec4 mTextColour;
+
+    bool useCustomPV = false;
     glm::mat4 mProjection = glm::mat4(1);
     glm::mat4 mView = glm::mat4(1);
-    glm::mat4 mModel = glm::mat4(1);
 
     //STATICS
     static GLuint shader_program;
