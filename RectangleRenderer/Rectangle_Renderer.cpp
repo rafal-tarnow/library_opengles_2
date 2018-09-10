@@ -141,7 +141,7 @@ void initShader(){
     }
 }
 
-void DE_initRectangle(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat width, GLfloat height, GLfloat z)
+void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat width, GLfloat height, GLfloat z)
 {
     if(shaderInited == 0)
     {
@@ -190,7 +190,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat wid
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
 
-void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GLfloat width, GLfloat height, GLfloat z)
+void DE_initRectangle_5(DE_Rectangle * rectangle, const char * textureFilename, GLfloat width, GLfloat height, GLfloat z)
 {
     if(shaderInited == 0)
     {
@@ -240,7 +240,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GL
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
 
-void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * verticles, glm::vec2 * texCoords)
+void DE_initRectangle_6(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * verticles, glm::vec2 * texCoords)
 {
     if(shaderInited == 0)
     {
@@ -289,15 +289,13 @@ void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * ve
 
 }
 
-void DE_initRectangle(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec3 position, glm::vec2 dimm)
+void DE_initRectangle_8(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec2 dimm)
 {
     if(shaderInited == 0)
     {
         initShader();
     }
 
-
-    rectangle->position = position;
     rectangle->dimm = dimm;
     rectangle->texture_id = 0;
     rectangle->colour = colour;
@@ -309,33 +307,33 @@ void DE_initRectangle(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec3 posi
     GLfloat z = 0;
 
     //TOP RIGHT VERTICES
-    rectangle_vertices[0] = width_2 + position.x;
-    rectangle_vertices[1] = height_2 + position.y;
-    rectangle_vertices[2] = position.z;
+    rectangle_vertices[0] = width_2;
+    rectangle_vertices[1] = height_2;
+    rectangle_vertices[2] = 0;
 
     rectangle_vertices[3] = 1.0f;
     rectangle_vertices[4] = 1.0f;
 
     //BOTTOM RIGHT VERTICES
-    rectangle_vertices[5] = width_2 + position.x;
-    rectangle_vertices[6] = -height_2 + position.y;
-    rectangle_vertices[7] = position.z;
+    rectangle_vertices[5] = width_2;
+    rectangle_vertices[6] = -height_2;
+    rectangle_vertices[7] = 0;
 
     rectangle_vertices[8] = 1.0f;
     rectangle_vertices[9] = 0.0f;
 
     //BOTTOM LEFT VERTICES
-    rectangle_vertices[10] = -width_2 + position.x;
-    rectangle_vertices[11] = -height_2 + position.y;
-    rectangle_vertices[12] = position.z;
+    rectangle_vertices[10] = -width_2;
+    rectangle_vertices[11] = -height_2;
+    rectangle_vertices[12] = 0;
 
     rectangle_vertices[13] = 0.0f;
     rectangle_vertices[14] = 0.0f;
 
     //
-    rectangle_vertices[15] = -width_2 + position.x;
-    rectangle_vertices[16] = height_2 + position.y;
-    rectangle_vertices[17] = position.z;
+    rectangle_vertices[15] = -width_2;
+    rectangle_vertices[16] = height_2;
+    rectangle_vertices[17] = 0;
 
     rectangle_vertices[18] = 0.0f;
     rectangle_vertices[19] = 1.0f;
@@ -344,7 +342,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec3 posi
 
 }
 
-void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, glm::vec3 position, glm::vec2 dimm)
+void DE_initRectangle_3(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm)
 {
     if(shaderInited == 0)
     {
@@ -352,7 +350,7 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, gl
     }
 
 
-    rectangle->texture_id = TextureManager::getInstance()->getTextureId(textureFilename);
+    rectangle->texture_id = textureId;
     rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
 
 
@@ -360,32 +358,32 @@ void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, gl
     GLfloat height_2 = dimm.y/2.0f;
 
     //TOP RIGHT VERTICES
-    rectangle_vertices[0] = width_2 + position.x;
-    rectangle_vertices[1] = height_2 + position.y;
-    rectangle_vertices[2] = position.z;
+    rectangle_vertices[0] = width_2;
+    rectangle_vertices[1] = height_2;
+    rectangle_vertices[2] = 0;
 
     rectangle_vertices[3] = 1.0f;
     rectangle_vertices[4] = 1.0f;
 
     //BOTTOM RIGHT VERTICES
-    rectangle_vertices[5] = width_2 + position.x;
-    rectangle_vertices[6] = -height_2 + position.y;
-    rectangle_vertices[7] = position.z;
+    rectangle_vertices[5] = width_2;
+    rectangle_vertices[6] = -height_2;
+    rectangle_vertices[7] = 0;
 
     rectangle_vertices[8] = 1.0f;
     rectangle_vertices[9] = 0.0f;
 
     //BOTTOM LEFT VERTICES
-    rectangle_vertices[10] = -width_2 + position.x;
-    rectangle_vertices[11] = -height_2 + position.y;
-    rectangle_vertices[12] = position.z;
+    rectangle_vertices[10] = -width_2;
+    rectangle_vertices[11] = -height_2;
+    rectangle_vertices[12] = 0;
 
     rectangle_vertices[13] = 0.0f;
     rectangle_vertices[14] = 0.0f;
     //
-    rectangle_vertices[15] = -width_2 + position.x;
-    rectangle_vertices[16] = height_2 + position.y;
-    rectangle_vertices[17] = position.z;
+    rectangle_vertices[15] = -width_2;
+    rectangle_vertices[16] = height_2;
+    rectangle_vertices[17] = 0;
 
     rectangle_vertices[18] = 0.0f;
     rectangle_vertices[19] = 1.0f;
@@ -401,33 +399,51 @@ void DE_setDimm(DE_Rectangle * rectangle, glm::vec2 dimm)
     GLfloat height_2 = dimm.y/2.0f;
 
     //TOP RIGHT VERTICES
-    rectangle_vertices[0] = width_2 + rectangle->position.x;
-    rectangle_vertices[1] = height_2 + rectangle->position.y;
-    rectangle_vertices[2] = rectangle->position.z;
+    rectangle_vertices[0] = width_2;
+    rectangle_vertices[1] = height_2;
+    rectangle_vertices[2] = 0;
+
+    rectangle_vertices[3] = 1.0f;
+    rectangle_vertices[4] = 1.0f;
+
     //BOTTOM RIGHT VERTICES
-    rectangle_vertices[5] = width_2 + rectangle->position.x;
-    rectangle_vertices[6] = -height_2 + rectangle->position.y;
-    rectangle_vertices[7] = rectangle->position.z;
+    rectangle_vertices[5] = width_2;
+    rectangle_vertices[6] = -height_2;
+    rectangle_vertices[7] = 0;
+
+    rectangle_vertices[8] = 1.0f;
+    rectangle_vertices[9] = 0.0f;
+
     //BOTTOM LEFT VERTICES
-    rectangle_vertices[10] = -width_2 + rectangle->position.x;
-    rectangle_vertices[11] = -height_2 + rectangle->position.y;
-    rectangle_vertices[12] = rectangle->position.z;
+    rectangle_vertices[10] = -width_2;
+    rectangle_vertices[11] = -height_2;
+    rectangle_vertices[12] = 0;
+
+    rectangle_vertices[13] = 0.0f;
+    rectangle_vertices[14] = 0.0f;
     //
-    rectangle_vertices[15] = -width_2 + rectangle->position.x;
-    rectangle_vertices[16] = height_2 + rectangle->position.y;
-    rectangle_vertices[17] = rectangle->position.z;
+    rectangle_vertices[15] = -width_2;
+    rectangle_vertices[16] = height_2;
+    rectangle_vertices[17] = 0;
+
+    rectangle_vertices[18] = 0.0f;
+    rectangle_vertices[19] = 1.0f;
 
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
 
+void DE_setModel(DE_Rectangle * rectancle, glm::mat4 model)
+{
+    rectancle->model = model;
+}
 
-void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm)
+
+void DE_initRectangle_4(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm)
 {
     if(shaderInited == 0)
     {
         initShader();
     }
-
 
 
     rectangle->texture_id = textureId;
@@ -471,13 +487,12 @@ void DE_initRectangle(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
 
-void DE_initRectangle(DE_Rectangle * rectangle, const char * textureFilename, GLfloat x_top_left, GLfloat y_top_left, GLfloat x_bottom_right, GLfloat y_bottom_right, GLfloat z)
+void DE_initRectangle_2(DE_Rectangle * rectangle, const char * textureFilename, GLfloat x_top_left, GLfloat y_top_left, GLfloat x_bottom_right, GLfloat y_bottom_right, GLfloat z)
 {
     if(shaderInited == 0)
     {
         initShader();
     }
-
 
 
     rectangle->texture_id = TextureManager::getInstance()->getTextureId(textureFilename);
