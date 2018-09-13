@@ -2,9 +2,10 @@
 
 
 
-#include <set>
+#include <vector>
 #include <string>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -14,17 +15,17 @@ public:
     ObjectCounter(string obj_name)
     {
         name = obj_name;
-        objects.insert(this);
+        objects.push_back(this);
     }
     ~ObjectCounter()
     {
-        objects.erase(this);
+        objects.erase(find(objects.begin(),objects.end(),this));
     }
     static void printObjects()
     {
         cout << "***********************" << endl;
         cout << "OBJECTS:" << endl;
-        set<ObjectCounter *>::iterator pos;
+        vector<ObjectCounter *>::iterator pos;
         for(pos = objects.begin(); pos != objects.end(); ++pos)
         {
             cout << "Object Name = " << (*pos)->name << endl;
@@ -32,6 +33,6 @@ public:
         cout << "***********************" << endl;
     }
     string name;
-    static set<ObjectCounter * > objects;
+    static vector<ObjectCounter *> objects;
 };
 

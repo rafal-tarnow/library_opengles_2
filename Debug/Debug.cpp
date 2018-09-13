@@ -1,3 +1,3 @@
 #include "Debug.hpp"
 
-set<ObjectCounter *> ObjectCounter::objects;
+vector<ObjectCounter *> ObjectCounter::objects;
