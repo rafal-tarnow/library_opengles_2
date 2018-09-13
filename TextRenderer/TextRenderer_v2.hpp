@@ -12,6 +12,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <library_opengles_2/Debug/Debug.hpp>
+
 const int MAX_STRING_LENGHT = 5000;
 
 #warning "TextRenderer_v2 dorobienie czyszczenia statycznych atlasow"
@@ -20,8 +22,13 @@ const int MAX_STRING_LENGHT = 5000;
 
 using namespace std;
 
-class Atlas_gl{
+
+class Atlas_gl : public ObjectCounter{
 public:
+    Atlas_gl() : ObjectCounter("Atlas_gl")
+    {
+
+    }
     typedef struct{
         unsigned int glyph_bitmap_width; //converted
         FT_Int glyph_bitmap_left;   //converted
@@ -43,7 +50,7 @@ public:
     std::map<char, GlyphData> glyph_map;
 };
 
-class TextRenderer_v2
+class TextRenderer_v2 : public ObjectCounter
 {
 public:
     typedef enum
@@ -66,7 +73,8 @@ public:
     void setColour(glm::vec4 colour);
     void setCustomPV(glm::mat4 P, glm::mat4 V);
     void RenderText(std::string text, GLfloat x_pixel, GLfloat y_pixel, TextPosition origin = TEXT_RIGHT);
-    void RenderText(std::string text, glm::mat4 model, TextPosition origin = TEXT_RIGHT);
+    void RenderText(uint8_t instance, std::string text,  GLfloat x, GLfloat y, TextPosition origin = TEXT_RIGHT);
+    void RenderText(uint8_t instance, std::string text, glm::mat4 model, TextPosition origin = TEXT_RIGHT);
 
 private:
     void prepareOpenGLSquareAtlas(FT_Library &ft, FT_Face &face, GLuint &fontSize, Atlas_gl &atlas_gl);
@@ -77,17 +85,29 @@ private:
     GLuint prepareVBO(const GLfloat * data, GLsizeiptr size);
 
     void debug_RenderRectangleAtlas(GLfloat x, GLfloat y);
-    void debug_RenderSquareAtlas(GLfloat x, GLfloat y);
+    void debug_RenderSquareAtlas(GLuint vbo, GLfloat x, GLfloat y);
 
     Atlas_gl * current_atlas;
 
     glm::vec4 viewport = glm::vec4(0,0,0,0);
-    std::string previous_string;
-    GLfloat textLenght = 0.0f;
+
+
+    class TextInstance : public ObjectCounter{
+    public:
+        TextInstance() : ObjectCounter("TextInstance")
+        {
+            previous_string = "";
+            textLenght = 0.0f;
+            vbo = 0;
+        }
+        string previous_string;
+        GLfloat textLenght;
+        GLuint vbo;
+    };
 
     //GOODS
     GLuint EBO;
-    GLuint vbo;
+    map<uint8_t,TextInstance> vboBuffersMap;
 
     GLfloat verticles_table[20*MAX_STRING_LENGHT]= {
         0.0f, 0.0f, 0.0f,   1.0f,0.0f,

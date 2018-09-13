@@ -23,5 +23,6 @@ add_library (library_opengles_2 STATIC
     RenderableObjects/RenderableObject_gles2.cpp
     RenderableObjects/SimpleObjects/GridLines.cpp
     Resources/Resources.cpp
+    Debug/Debug.cpp
     )
 

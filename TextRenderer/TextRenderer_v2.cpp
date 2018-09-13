@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cmath>
 
+#include <system_log.hpp>
+
 #include "stb_rect_pack.h"
 
 #include <glm/glm.hpp>
@@ -60,7 +62,7 @@ static void drawGlyphToConsole(FT_Face &face);
 
 
 
-TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels, glm::vec4 txtColor)
+TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels, glm::vec4 txtColor) : ObjectCounter("TextRenderer_v2")
 {
     mTextColour = txtColor;
 
@@ -83,8 +85,6 @@ TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewp
     }
 
 
-    vbo = prepareVBO(verticles_table, sizeof(verticles_table));
-
     //preparing EBO
     for(unsigned int i = 0; i < MAX_STRING_LENGHT; i++){
         indices[0 + i*6] = 0 + i*4;
@@ -105,7 +105,12 @@ TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewp
 
 TextRenderer_v2::~TextRenderer_v2()
 {
-    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &EBO);
+
+    for(map<uint8_t, TextInstance>::iterator  pos = vboBuffersMap.begin(); pos != vboBuffersMap.end(); ++pos)
+    {
+        glDeleteBuffers(1, &(pos->second.vbo));
+    }
 }
 
 void TextRenderer_v2::onVievportResize(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels)
@@ -380,7 +385,7 @@ void TextRenderer_v2::prepareOpenGLSquareAtlas(FT_Library &ft, FT_Face &face, GL
     free(rects);
 }
 
-void TextRenderer_v2::debug_RenderSquareAtlas(GLfloat x, GLfloat y)
+void TextRenderer_v2::debug_RenderSquareAtlas(GLuint vbo, GLfloat x, GLfloat y)
 {
     string text = "Atlas";
 
@@ -467,13 +472,30 @@ void TextRenderer_v2::setCustomPV(glm::mat4 P, glm::mat4 V)
 void TextRenderer_v2::RenderText(std::string text,  GLfloat x, GLfloat y, TextPosition origin)
 {
     glm::mat4 Model = glm::translate(glm::mat4(1),glm::vec3(round(x), round(y), 0));
-    RenderText(text,Model,origin);
+    RenderText(1, text,Model,origin);
 }
 
-void TextRenderer_v2::RenderText(std::string text, glm::mat4 model, TextPosition origin)
+void TextRenderer_v2::RenderText(uint8_t instance, std::string text,  GLfloat x, GLfloat y, TextPosition origin)
 {
-    //    debug_RenderSquareAtlas(0, 0);
-    //    return;
+    glm::mat4 Model = glm::translate(glm::mat4(1),glm::vec3(round(x), round(y), 0));
+    RenderText(instance, text,Model,origin);
+}
+
+void TextRenderer_v2::RenderText(uint8_t instance, std::string text, glm::mat4 model, TextPosition origin)
+{
+    TextInstance *textInstance = &(vboBuffersMap[instance]);
+    if(textInstance->vbo == 0)
+    {
+        GLuint new_vbo = prepareVBO(verticles_table, sizeof(verticles_table));
+        textInstance->vbo = new_vbo;
+    }
+
+    GLuint vbo = textInstance->vbo;
+    //debug_RenderSquareAtlas(vbo, 0, 0);
+    //return;
+
+    //cout << "Use VBO = " << vbo << endl;
+
 
     GLfloat pen_x_float = 0;
     int pen_x_int = 0;
@@ -506,8 +528,8 @@ void TextRenderer_v2::RenderText(std::string text, glm::mat4 model, TextPosition
 
         int index = 0;
 
-        if(previous_string != text){ // Optymalization - update buffers only when text changed
-            previous_string = text;
+        if(textInstance->previous_string != text){ // Optymalization - update buffers only when text changed
+            textInstance->previous_string = text;
             // Iterate through all characters
             std::string::const_iterator c;
 
@@ -522,20 +544,20 @@ void TextRenderer_v2::RenderText(std::string text, glm::mat4 model, TextPosition
                 y_top = pen_y_float + atlasCharData_tmp.glyph_bitmap_top;
                 y_bottom = y_top - atlasCharData_tmp.glyph_bitmap_rows;
 
-                cout << " FOR LETTER " << *c << endl;
+//                cout << " FOR LETTER " << *c << endl;
 
-                cout << "   DIMMENSIONS:" << endl;
-                cout << "   atlasCharData_tmp.glyph_bitmap_left = " << atlasCharData_tmp.glyph_bitmap_left << endl;
-                cout << "   atlasCharData_tmp.glyph_bitmap_width = " << atlasCharData_tmp.glyph_bitmap_width << endl;
-                cout << "   atlasCharData_tmp.glyph_bitmap_top = " << atlasCharData_tmp.glyph_bitmap_top << endl;
-                cout << "   atlasCharData_tmp.glyph_bitmap_rows = " << atlasCharData_tmp.glyph_bitmap_rows << endl;
+//                cout << "   DIMMENSIONS:" << endl;
+//                cout << "   atlasCharData_tmp.glyph_bitmap_left = " << atlasCharData_tmp.glyph_bitmap_left << endl;
+//                cout << "   atlasCharData_tmp.glyph_bitmap_width = " << atlasCharData_tmp.glyph_bitmap_width << endl;
+//                cout << "   atlasCharData_tmp.glyph_bitmap_top = " << atlasCharData_tmp.glyph_bitmap_top << endl;
+//                cout << "   atlasCharData_tmp.glyph_bitmap_rows = " << atlasCharData_tmp.glyph_bitmap_rows << endl;
 
 
-                cout << "  POSIOTIONS: " << endl;
-                cout << "   x_left = " << x_left << endl;
-                cout << "   x_right = " << x_right << endl;
-                cout << "   y_top = " << y_top << endl;
-                cout << "   y_bottom = " << y_bottom << endl;
+//                cout << "  POSIOTIONS: " << endl;
+//                cout << "   x_left = " << x_left << endl;
+//                cout << "   x_right = " << x_right << endl;
+//                cout << "   y_top = " << y_top << endl;
+//                cout << "   y_bottom = " << y_bottom << endl;
 
 
                 //                if(doOptymalization_1(x + x_left,y + y_top,y + y_bottom)){
@@ -577,8 +599,9 @@ void TextRenderer_v2::RenderText(std::string text, glm::mat4 model, TextPosition
                 pen_x_int = pen_x_float/64.0f;
                 index += 20;
             }
-            textLenght = x_right;
-            cout << "Text Lenght = " << textLenght << endl;
+            textInstance->textLenght = x_right;
+            cout << "Text Lenght = " << textInstance->textLenght << endl;
+            cout << "UPDATE VBO !!!!" << endl;
             glBufferSubData (GL_ARRAY_BUFFER, 0, sizeof(verticles_table), verticles_table);
         }
 
@@ -599,9 +622,9 @@ void TextRenderer_v2::RenderText(std::string text, glm::mat4 model, TextPosition
         if(origin == TEXT_RIGHT)
             ;
         else if(origin == TEXT_CENTER)
-            model = glm::translate(model, glm::vec3(round(- textLenght/2.0f), 0, 0));
+            model = glm::translate(model, glm::vec3(round(- textInstance->textLenght/2.0f), 0, 0));
         else if(origin == TEXT_LEFT)
-            model = glm::translate(model, glm::vec3(round(- textLenght), 0, 0));
+            model = glm::translate(model, glm::vec3(round(- textInstance->textLenght), 0, 0));
 
 
         glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(mProjection));

@@ -4,11 +4,13 @@
 #include <android/asset_manager.h>
 #endif
 
+#include <library_opengles_2/Debug/Debug.hpp>
+
 #include <string>
 
 using namespace std;
 
-class Resource{
+class Resource : ObjectCounter{
 public:
     Resource(string path);
     ~Resource();
