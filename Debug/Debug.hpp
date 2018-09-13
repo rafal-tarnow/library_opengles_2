@@ -1,10 +1,12 @@
 #pragma once
 
-using namespace std;
+
 
 #include <set>
 #include <string>
 #include <iostream>
+
+using namespace std;
 
 class ObjectCounter
 {
