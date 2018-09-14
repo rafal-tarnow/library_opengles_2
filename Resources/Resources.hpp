@@ -10,7 +10,7 @@
 
 using namespace std;
 
-class Resource : ObjectCounter{
+class Resource{
 public:
     Resource(string path);
     ~Resource();
@@ -28,5 +28,6 @@ private:
 #endif
     unsigned char * data = NULL;
     uint32_t size = 0;
+    DBG_COUNT("Resource");
 
 };

@@ -23,12 +23,9 @@ const int MAX_STRING_LENGHT = 5000;
 using namespace std;
 
 
-class Atlas_gl : public ObjectCounter{
+class Atlas_gl{
 public:
-    Atlas_gl() : ObjectCounter("Atlas_gl")
-    {
 
-    }
     typedef struct{
         unsigned int glyph_bitmap_width; //converted
         FT_Int glyph_bitmap_left;   //converted
@@ -48,9 +45,11 @@ public:
     GLuint square_AtlasTextureId;
 
     std::map<char, GlyphData> glyph_map;
+private:
+    DBG_COUNT("Atlas_gl");
 };
 
-class TextRenderer_v2 : public ObjectCounter
+class TextRenderer_v2
 {
 public:
     typedef enum
@@ -92,9 +91,9 @@ private:
     glm::vec4 viewport = glm::vec4(0,0,0,0);
 
 
-    class TextInstance : public ObjectCounter{
+    class TextInstance{
     public:
-        TextInstance() : ObjectCounter("TextInstance")
+        TextInstance()
         {
             previous_string = "";
             textLenght = 0.0f;
@@ -103,6 +102,8 @@ private:
         string previous_string;
         GLfloat textLenght;
         GLuint vbo;
+    private:
+       DBG_COUNT("TextInstance");
     };
 
     //GOODS
@@ -138,6 +139,8 @@ private:
     static GLint modelMatrixLocation;
 
     static map<string, map<GLuint , Atlas_gl *>> mapaAtlasow;
+
+  DBG_COUNT("TextRenderer_v2");
 
 };
 

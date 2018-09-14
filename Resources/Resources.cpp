@@ -9,7 +9,7 @@ void Resource::initAndroid(AAssetManager*	pAssetManager)
 }
 #endif
 
-Resource::Resource(string path) : ObjectCounter("Resource")
+Resource::Resource(string path)
 {
 #ifdef __ANDROID__
     AAsset* asset=AAssetManager_open(m_pAssetManager,path.c_str(),AASSET_MODE_BUFFER);

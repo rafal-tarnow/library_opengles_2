@@ -62,7 +62,7 @@ static void drawGlyphToConsole(FT_Face &face);
 
 
 
-TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels, glm::vec4 txtColor) : ObjectCounter("TextRenderer_v2")
+TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels, glm::vec4 txtColor)
 {
     mTextColour = txtColor;
 
