@@ -69,7 +69,7 @@ private:
     static void printMapObjects()
     {
         cout << "MAP:" << endl;
-        map<string, vector<ObjectCounter *>>::iterator positon;
+        map<string, vector<ObjectCounter *> >::iterator positon;
         for( positon = objects_map.begin(); positon != objects_map.end(); ++positon)
         {
             if(positon->second.size() > 0)
@@ -81,6 +81,6 @@ private:
     string name;
     // int type = 0;
     static vector<ObjectCounter *> objects;
-    static map<string, vector<ObjectCounter *>> objects_map;
+    static map<string, vector<ObjectCounter *> > objects_map;
 };
 
