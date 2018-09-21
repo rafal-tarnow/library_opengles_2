@@ -600,8 +600,8 @@ void TextRenderer_v2::RenderText(uint8_t instance, std::string text, glm::mat4 m
                 index += 20;
             }
             textInstance->textLenght = x_right;
-            cout << "Text Lenght = " << textInstance->textLenght << endl;
-            cout << "UPDATE VBO !!!!" << endl;
+            //cout << "Text Lenght = " << textInstance->textLenght << endl;
+            //cout << "UPDATE VBO !!!!" << endl;
             glBufferSubData (GL_ARRAY_BUFFER, 0, sizeof(verticles_table), verticles_table);
         }
 
