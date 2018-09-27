@@ -33,9 +33,11 @@ GLuint TextureManager::getTextureId(string fileName){
 
 GLuint TextureManager::getTextureId(string fileName, unsigned int flags)
 {
-    if(mapaTesktur.count(fileName) == 1){
-        //jeżeli istnieje juz taka teksuta to ją zwróc
-        return mapaTesktur.at(fileName);
+    GLuint texture = mapaTesktur[fileName];
+
+    if(glIsTexture(texture) == GL_TRUE){
+        //jeżeli istnieje juz taka tektura
+        return texture;
     }else{
         Resource imageResource(fileName);
 

@@ -43,8 +43,8 @@ static GLint viewMatrixLocation;
 static GLint modelMatrixLocation;
 static GLint position_location;
 static GLint textureUnitLocation;
-static GLuint shader_program;
-static int shaderInited = 0;
+static GLuint shader_program = 0;
+
 
 
 static GLuint generateVBO(){
@@ -62,10 +62,10 @@ static void updateVBOdata(GLuint vbo, const GLvoid * data, GLsizeiptr number_of_
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
-static GLuint initShader()
+static GLuint initTextureShader()
 {
-    if(shaderInited == 0)
-    {
+
+
         shader_program = compileShaders(vertex_shader_source, fragment_shader_source);
 
         position_location = glGetAttribLocation(shader_program, "position");
@@ -76,16 +76,16 @@ static GLuint initShader()
         colourLocation = glGetUniformLocation(shader_program, "colour");
         textureUnitLocation = glGetUniformLocation (shader_program, "textureUnit" );
 
-        shaderInited = 1;
-    }
+
+
     return shader_program;
 }
 
 void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, float * verticlesTable, int tableSize, glm::vec4 color)
 {
-    if(shaderInited == 0)
+    if(glIsProgram(shader_program) == GL_FALSE)
     {
-        initShader();
+        initTextureShader();
     }
 
     glUseProgram(shader_program);
@@ -102,9 +102,9 @@ void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, float * verticlesTab
 
 void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, glm::vec3 * verticlesTable, int tableSize, glm::vec4 color)
 {
-    if(shaderInited == 0)
+    if(glIsProgram(shader_program) == GL_FALSE)
     {
-        initShader();
+        initTextureShader();
     }
 
     glUseProgram(shader_program);
@@ -121,9 +121,9 @@ void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, glm::vec3 * verticle
 
 void TS_initTriangleStrip(TS_TriangleStrip * triangleStrip, glm::vec3 * verticlesTable, int tableSize, GLuint textureId)
 {
-    if(shaderInited == 0)
+    if(glIsProgram(shader_program) == GL_FALSE)
     {
-        initShader();
+        initTextureShader();
     }
 
     glUseProgram(shader_program);
