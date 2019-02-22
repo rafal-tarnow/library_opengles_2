@@ -4,16 +4,14 @@
 
 map<string, GLuint> ShaderManager::mapaShaderow;
 
-GLuint ShaderManager::getShaderId(string fileName){
-    if(mapaShaderow.count(fileName) == 1){
-        //jeżeli istnieje juz taka teksuta to ją zwróc
-        return mapaShaderow.at(fileName);
-    }else{
-        //w przeciwnym wypadku utworz nowa teksture
-        mapaShaderow[fileName] = SOIL_load_OGL_texture(fileName.c_str(), 4,0,SOIL_FLAG_MIPMAPS | SOIL_FLAG_INVERT_Y);
-        return mapaShaderow.at(fileName);
-    }
-    return 0;
+Shader * ShaderManager::getTextureShader()
+{
+    return nullptr;
+}
+
+Shader * ShaderManager::getColourShader()
+{
+    return nullptr;
 }
 
 void ShaderManager::deleteAllShaders(){

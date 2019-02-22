@@ -104,16 +104,14 @@ static GLint viewMatrixLocation_col;
 static GLint modelMatrixLocation_col;
 
 static int shaderInited = 0;
-static Shader *shaderTexture = nullptr;
-static Shader *shaderColour = nullptr;
+static Shader *shaderTexture;
+static Shader *shaderColour;
 
 void initShader(){
     if(shaderInited == 0)
     {
-
         {
             shaderTexture = new Shader(texture_vertex_shader_source, texture_fragment_shader_source, Shader::SOURCE);
-
             position_location_tex = shaderTexture->getAttribLocation("position");
             texCoord_attrib_location_tex = shaderTexture->getAttribLocation("texCoord");
             textureUnitLocation_tex = shaderTexture->getUniformLocation("textureUnit");
@@ -125,7 +123,6 @@ void initShader(){
 
         {
             shaderColour = new Shader(colour_vertex_shader_source, colour_fragment_shader_source, Shader::SOURCE);
-
             position_location_col = shaderColour->getAttribLocation("position");
 
             projectionMatrixLocation_col = shaderColour->getUniformLocation("projection");
@@ -145,7 +142,7 @@ void initShader(){
 
 void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat width, GLfloat height, GLfloat z)
 {
-    if((shaderTexture == nullptr) || (shaderColour == nullptr))
+    if(shaderInited == 0)
     {
         initShader();
     }
@@ -194,7 +191,7 @@ void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat w
 
 void DE_initRectangle_5(DE_Rectangle * rectangle, const char * textureFilename, GLfloat width, GLfloat height, GLfloat z)
 {
-    if((shaderTexture == nullptr) || (shaderColour == nullptr))
+    if(shaderInited == 0)
     {
         initShader();
     }
@@ -244,7 +241,7 @@ void DE_initRectangle_5(DE_Rectangle * rectangle, const char * textureFilename, 
 
 void DE_initRectangle_6(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * verticles, glm::vec2 * texCoords)
 {
-    if((shaderTexture == nullptr) || (shaderColour == nullptr))
+    if(shaderInited == 0)
     {
         initShader();
     }
@@ -293,7 +290,7 @@ void DE_initRectangle_6(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * 
 
 void DE_initRectangle_8(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec2 dimm)
 {
-    if((shaderTexture == nullptr) || (shaderColour == nullptr))
+    if(shaderInited == 0)
     {
         initShader();
     }
@@ -346,7 +343,7 @@ void DE_initRectangle_8(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec2 di
 
 void DE_initRectangle_3(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm)
 {
-    if((shaderTexture == nullptr) || (shaderColour == nullptr))
+    if(shaderInited == 0)
     {
         initShader();
     }
@@ -442,7 +439,7 @@ void DE_setModel(DE_Rectangle * rectancle, glm::mat4 model)
 
 void DE_initRectangle_4(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm)
 {
-    if((shaderTexture == nullptr) || (shaderColour == nullptr))
+    if(shaderInited == 0)
     {
         initShader();
     }
@@ -491,7 +488,7 @@ void DE_initRectangle_4(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 di
 
 void DE_initRectangle_2(DE_Rectangle * rectangle, const char * textureFilename, GLfloat x_top_left, GLfloat y_top_left, GLfloat x_bottom_right, GLfloat y_bottom_right, GLfloat z)
 {
-    if((shaderTexture == nullptr) || (shaderColour == nullptr))
+    if(shaderInited == 0)
     {
         initShader();
     }
@@ -536,7 +533,7 @@ void DE_initRectangle_2(DE_Rectangle * rectangle, const char * textureFilename, 
 
 void DE_initRectangle_1(DE_Rectangle * rectangle, GLuint textureId, GLfloat x_top_left, GLfloat y_top_left, GLfloat x_bottom_right, GLfloat y_bottom_right, GLfloat z)
 {
-    if((shaderTexture == nullptr) || (shaderColour == nullptr))
+if(shaderInited == 0)
     {
         initShader();
     }
