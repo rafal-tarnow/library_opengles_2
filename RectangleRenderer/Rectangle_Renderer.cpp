@@ -1,5 +1,6 @@
 #include "Rectangle_Renderer.hpp"
 #include "../TextureManager/texture_manager.hpp"
+#include "../Shader/shader_m.h"
 #include <iostream>
 #include "../../system_log.hpp"
 
@@ -102,38 +103,39 @@ static GLint projectionMatrixLocation_col;
 static GLint viewMatrixLocation_col;
 static GLint modelMatrixLocation_col;
 
-static GLuint texture_shader_program;
-static GLuint colour_shader_program;
 static int shaderInited = 0;
+static Shader *shaderTexture = nullptr;
+static Shader *shaderColour = nullptr;
 
 void initShader(){
     if(shaderInited == 0)
     {
-        if(glIsProgram(texture_shader_program) == GL_FALSE)
+
         {
-            texture_shader_program = compileShaders(texture_vertex_shader_source, texture_fragment_shader_source);
+            shaderTexture = new Shader(texture_vertex_shader_source, texture_fragment_shader_source, Shader::SOURCE);
 
-            position_location_tex = glGetAttribLocation(texture_shader_program, "position");
-            texCoord_attrib_location_tex = glGetAttribLocation(texture_shader_program,"texCoord");
-            textureUnitLocation_tex = glGetUniformLocation (texture_shader_program, "textureUnit" );
+            position_location_tex = shaderTexture->getAttribLocation("position");
+            texCoord_attrib_location_tex = shaderTexture->getAttribLocation("texCoord");
+            textureUnitLocation_tex = shaderTexture->getUniformLocation("textureUnit");
 
-            projectionMatrixLocation_tex = glGetUniformLocation(texture_shader_program, "projection");
-            viewMatrixLocation_tex = glGetUniformLocation(texture_shader_program, "view");
-            modelMatrixLocation_tex = glGetUniformLocation(texture_shader_program, "model");
+            projectionMatrixLocation_tex = shaderTexture->getUniformLocation("projection");
+            viewMatrixLocation_tex = shaderTexture->getUniformLocation("view");
+            modelMatrixLocation_tex = shaderTexture->getUniformLocation("model");
         }
 
-        if(glIsProgram(colour_shader_program) == GL_FALSE)
         {
-            colour_shader_program = compileShaders(colour_vertex_shader_source, colour_fragment_shader_source);
+            shaderColour = new Shader(colour_vertex_shader_source, colour_fragment_shader_source, Shader::SOURCE);
 
-            position_location_col = glGetAttribLocation(colour_shader_program, "position");
+            position_location_col = shaderColour->getAttribLocation("position");
 
-            projectionMatrixLocation_col = glGetUniformLocation(colour_shader_program, "projection");
-            viewMatrixLocation_col = glGetUniformLocation(colour_shader_program, "view");
-            modelMatrixLocation_col = glGetUniformLocation(colour_shader_program, "model");
+            projectionMatrixLocation_col = shaderColour->getUniformLocation("projection");
+            viewMatrixLocation_col = shaderColour->getUniformLocation("view");
+            modelMatrixLocation_col = shaderColour->getUniformLocation("model");
         }
 
         shaderInited = 1;
+
+
     }
     else
     {
@@ -143,7 +145,7 @@ void initShader(){
 
 void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat width, GLfloat height, GLfloat z)
 {
-    if((glIsProgram(texture_shader_program) == GL_FALSE) || (glIsProgram(colour_shader_program) == GL_FALSE))
+    if((shaderTexture == nullptr) || (shaderColour == nullptr))
     {
         initShader();
     }
@@ -192,7 +194,7 @@ void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat w
 
 void DE_initRectangle_5(DE_Rectangle * rectangle, const char * textureFilename, GLfloat width, GLfloat height, GLfloat z)
 {
-    if((glIsProgram(texture_shader_program) == GL_FALSE) || (glIsProgram(colour_shader_program) == GL_FALSE))
+    if((shaderTexture == nullptr) || (shaderColour == nullptr))
     {
         initShader();
     }
@@ -242,7 +244,7 @@ void DE_initRectangle_5(DE_Rectangle * rectangle, const char * textureFilename, 
 
 void DE_initRectangle_6(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * verticles, glm::vec2 * texCoords)
 {
-    if((glIsProgram(texture_shader_program) == GL_FALSE) || (glIsProgram(colour_shader_program) == GL_FALSE))
+    if((shaderTexture == nullptr) || (shaderColour == nullptr))
     {
         initShader();
     }
@@ -291,7 +293,7 @@ void DE_initRectangle_6(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * 
 
 void DE_initRectangle_8(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec2 dimm)
 {
-    if((glIsProgram(texture_shader_program) == GL_FALSE) || (glIsProgram(colour_shader_program) == GL_FALSE))
+    if((shaderTexture == nullptr) || (shaderColour == nullptr))
     {
         initShader();
     }
@@ -344,7 +346,7 @@ void DE_initRectangle_8(DE_Rectangle * rectangle, glm::vec4 colour, glm::vec2 di
 
 void DE_initRectangle_3(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm)
 {
-    if((glIsProgram(texture_shader_program) == GL_FALSE) || (glIsProgram(colour_shader_program) == GL_FALSE))
+    if((shaderTexture == nullptr) || (shaderColour == nullptr))
     {
         initShader();
     }
@@ -388,7 +390,7 @@ void DE_initRectangle_3(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 di
     rectangle_vertices[18] = 0.0f;
     rectangle_vertices[19] = 1.0f;
 
-    updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));  
+    updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
 
 void DE_setDimm(DE_Rectangle * rectangle, glm::vec2 dimm)
@@ -440,7 +442,7 @@ void DE_setModel(DE_Rectangle * rectancle, glm::mat4 model)
 
 void DE_initRectangle_4(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm)
 {
-    if((glIsProgram(texture_shader_program) == GL_FALSE) || (glIsProgram(colour_shader_program) == GL_FALSE))
+    if((shaderTexture == nullptr) || (shaderColour == nullptr))
     {
         initShader();
     }
@@ -489,11 +491,10 @@ void DE_initRectangle_4(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 di
 
 void DE_initRectangle_2(DE_Rectangle * rectangle, const char * textureFilename, GLfloat x_top_left, GLfloat y_top_left, GLfloat x_bottom_right, GLfloat y_bottom_right, GLfloat z)
 {
-    if((glIsProgram(texture_shader_program) == GL_FALSE) || (glIsProgram(colour_shader_program) == GL_FALSE))
+    if((shaderTexture == nullptr) || (shaderColour == nullptr))
     {
         initShader();
     }
-
 
     rectangle->texture_id = TextureManager::getInstance()->getTextureId(textureFilename);
     rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
@@ -535,7 +536,7 @@ void DE_initRectangle_2(DE_Rectangle * rectangle, const char * textureFilename, 
 
 void DE_initRectangle_1(DE_Rectangle * rectangle, GLuint textureId, GLfloat x_top_left, GLfloat y_top_left, GLfloat x_bottom_right, GLfloat y_bottom_right, GLfloat z)
 {
-    if((glIsProgram(texture_shader_program) == GL_FALSE) || (glIsProgram(colour_shader_program) == GL_FALSE))
+    if((shaderTexture == nullptr) || (shaderColour == nullptr))
     {
         initShader();
     }
@@ -580,52 +581,52 @@ void DE_initRectangle_1(DE_Rectangle * rectangle, GLuint textureId, GLfloat x_to
 }
 
 void DE_drawRectangle(DE_Rectangle * rectangle){
+
     if(rectangle->texture_id != 0)
     {
-        glUseProgram(texture_shader_program);
+
+        shaderTexture->use();
+        shaderTexture->setMat4(projectionMatrixLocation_tex, rectangle->projection);
+        shaderTexture->setMat4(viewMatrixLocation_tex, rectangle->view);
+        shaderTexture->setMat4(modelMatrixLocation_tex, rectangle->model);
+
+        GLuint texture_unit = 0;
+
+        glActiveTexture(GL_TEXTURE0 + texture_unit);
+        glBindTexture(GL_TEXTURE_2D, rectangle->texture_id);
+        glUniform1i(textureUnitLocation_tex, texture_unit);
+
+
+        glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
         {
-            glUniformMatrix4fv(projectionMatrixLocation_tex, 1, GL_FALSE, glm::value_ptr(rectangle->projection));
-            glUniformMatrix4fv(viewMatrixLocation_tex, 1, GL_FALSE, glm::value_ptr(rectangle->view));
-            glUniformMatrix4fv(modelMatrixLocation_tex, 1, GL_FALSE, glm::value_ptr(rectangle->model));
+            glVertexAttribPointer(position_location_tex, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+            glEnableVertexAttribArray(position_location_tex);
 
-            GLuint texture_unit = 0;
+            glVertexAttribPointer(texCoord_attrib_location_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+            glEnableVertexAttribArray(texCoord_attrib_location_tex);
 
-            glActiveTexture(GL_TEXTURE0 + texture_unit);
-            glBindTexture(GL_TEXTURE_2D, rectangle->texture_id);
-            glUniform1i(textureUnitLocation_tex, texture_unit);
-
-
-            glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
-            {
-                glVertexAttribPointer(position_location_tex, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-                glEnableVertexAttribArray(position_location_tex);
-
-                glVertexAttribPointer(texCoord_attrib_location_tex, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-                glEnableVertexAttribArray(texCoord_attrib_location_tex);
-
-                glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-            }
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
         }
-        glUseProgram(0);
-    }else
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    }
+    else
     {
-        glUseProgram(colour_shader_program);
+
+        shaderColour->use();
+        shaderColour->setMat4("projection", rectangle->projection);
+        shaderColour->setMat4("view", rectangle->view);
+        shaderColour->setMat4("model", rectangle->model);
+
+        glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
         {
-            glUniformMatrix4fv(projectionMatrixLocation_col, 1, GL_FALSE, glm::value_ptr(rectangle->projection));
-            glUniformMatrix4fv(viewMatrixLocation_col, 1, GL_FALSE, glm::value_ptr(rectangle->view));
-            glUniformMatrix4fv(modelMatrixLocation_col, 1, GL_FALSE, glm::value_ptr(rectangle->model));
+            glVertexAttribPointer(position_location_col, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+            glEnableVertexAttribArray(position_location_col);
 
-            glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
-            {
-                glVertexAttribPointer(position_location_col, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
-                glEnableVertexAttribArray(position_location_col);
-
-                glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-            }
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
         }
-        glUseProgram(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
     }
 }
 

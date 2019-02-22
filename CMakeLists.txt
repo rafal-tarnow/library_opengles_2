@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.4.1)
 project(library_opengles_2)
 
 include_directories(
+    Shader
     TextRenderer
     RectangleRenderer
     TextureManager
