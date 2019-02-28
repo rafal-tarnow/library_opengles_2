@@ -58,7 +58,7 @@ GLuint TextureManager::getTextureId(string fileName, unsigned int flags)
 
         mapaTesktur[fileName] = textureId;
         mapaRozmiarow[textureId] = glm::vec2(width, height);
-        return mapaTesktur.at(fileName);
+        return textureId;
     }
     return 0;
 }

@@ -10,9 +10,13 @@ using namespace std;
 
 class ShaderManager {
 public:
-    static Shader * getTextureShader();
-    static Shader * getColourShader();
-    static void deleteAllShaders();
+    static ShaderManager * getInstance();
+     Shader_m * getShaderFromFile(string filename);
+     Shader_m * getShaderFromSource(string file_name, string vertex_source, string fragment_source);
+protected:
+    ShaderManager();
+    ~ShaderManager();
 private:
-    static map<string , GLuint> mapaShaderow;
+    static ShaderManager instance;
+    map<string , Shader_m *> mapaShaderow;
 };

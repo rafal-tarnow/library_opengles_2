@@ -12,6 +12,10 @@ include_directories(
     )
 
 add_library (library_opengles_2 STATIC
+    opengl_includes.hpp
+    Shader/ShadersSources/texture_shader_source.hpp
+    Shader/ShadersSources/colour_shader_source.hpp
+    Shader/shader_m.h
     TextRenderer/TextRenderer_v1.cpp
     TextRenderer/TextRenderer_v2.cpp
     TextRenderer/stb_rect_pack.cpp

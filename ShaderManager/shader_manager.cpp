@@ -2,19 +2,50 @@
 
 #include <SOIL.h>
 
-map<string, GLuint> ShaderManager::mapaShaderow;
+ShaderManager ShaderManager::instance;
 
-Shader * ShaderManager::getTextureShader()
+ShaderManager::ShaderManager()
 {
-    return nullptr;
+
 }
 
-Shader * ShaderManager::getColourShader()
+ShaderManager::~ShaderManager()
 {
-    return nullptr;
+    auto it = mapaShaderow.begin();
+
+    while(it != mapaShaderow.end())
+    {
+        Shader_m * shader = it->second;
+        delete shader;
+        it++;
+    }
 }
 
-void ShaderManager::deleteAllShaders(){
-    //TODO zrobic usuwanie tekstur
-      //glDeleteTextures(1)
+ShaderManager * ShaderManager::getInstance()
+{
+    return & instance;
 }
+
+Shader_m * ShaderManager::getShaderFromFile(string filename)
+{
+
+}
+
+Shader_m * ShaderManager::getShaderFromSource(string file_name, string vertex_source, string fragment_source)
+{
+    Shader_m * shader = mapaShaderow[file_name];
+
+    if(shader)
+    {
+        return shader;
+    }
+    else
+    {
+        shader = new Shader_m(vertex_source, fragment_source, Shader_m::SOURCE);
+        mapaShaderow[file_name] = shader;
+        return shader;
+    }
+
+
+}
+

@@ -1,5 +1,4 @@
-#ifndef SHADER_H
-#define SHADER_H
+#pragma once
 
 #include <GLES2/gl2.h>
 
@@ -13,7 +12,7 @@
 using namespace std;
 
 
-class Shader
+class Shader_m
 {
 public:
     typedef enum
@@ -25,12 +24,12 @@ public:
     GLuint ID;
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
-    Shader(const string &vertex, const string &fragment, Type type)
+    Shader_m(const string &vertex, const string &fragment, Type type)
     {
-        Shader(vertex.c_str(), fragment.c_str(), type);
+        Shader_m(vertex.c_str(), fragment.c_str(), type);
     }
 
-    Shader(const char* vertex, const char* fragment, Type type)
+    Shader_m(const char* vertex, const char* fragment, Type type)
     {
         if(type == PATH)
         {
@@ -211,4 +210,3 @@ private:
         }
     }
 };
-#endif
