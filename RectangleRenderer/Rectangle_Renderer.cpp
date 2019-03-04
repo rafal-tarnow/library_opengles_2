@@ -41,14 +41,14 @@ static Shader_m * shaderTexture = nullptr;
 
 void initShader(DE_Rectangle * rectangle)
 {
-    rectangle->shader = ShaderManager::getInstance()->getShaderFromSource("texture_shader_source.hpp", texture_vertex_shader_source, texture_fragment_shader_source);
+//    rectangle->shader = ShaderManager::getInstance()->getShaderFromSource("texture_shader_source.hpp", texture_vertex_shader_source, texture_fragment_shader_source);
 
-    rectangle->position_location = rectangle->shader->getAttribLocation("position");
-    rectangle->texCoord_attrib_location = rectangle->shader->getAttribLocation("texCoord");
-    rectangle->textureUnitLocation = rectangle->shader->getUniformLocation("textureUnit");
-    rectangle->projectionMatrixLocation = rectangle->shader->getUniformLocation("projection");
-    rectangle->viewMatrixLocation = rectangle->shader->getUniformLocation("view");
-    rectangle->modelMatrixLocation = rectangle->shader->getUniformLocation("model");
+//    rectangle->position_location = rectangle->shader->getAttribLocation("position");
+//    rectangle->texCoord_attrib_location = rectangle->shader->getAttribLocation("texCoord");
+//    rectangle->textureUnitLocation = rectangle->shader->getUniformLocation("textureUnit");
+//    rectangle->projectionMatrixLocation = rectangle->shader->getUniformLocation("projection");
+//    rectangle->viewMatrixLocation = rectangle->shader->getUniformLocation("view");
+//    rectangle->modelMatrixLocation = rectangle->shader->getUniformLocation("model");
 }
 
 void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat width, GLfloat height, GLfloat z)
