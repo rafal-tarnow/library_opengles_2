@@ -41,7 +41,6 @@ void DE_setModel(DE_Rectangle * rectancle, glm::mat4 model);
 void DE_setDimm(DE_Rectangle * rectangle, glm::vec2 dimm);
 
 void DE_drawRectangle(DE_Rectangle * rectangle);
-void DE_drawRectangleWithCustomShader(DE_Rectangle * rectangle);
 
 void DE_deleteRectangle(DE_Rectangle * rectangle);
 

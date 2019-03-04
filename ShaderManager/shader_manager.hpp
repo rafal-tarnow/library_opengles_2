@@ -12,7 +12,7 @@ class ShaderManager {
 public:
     static ShaderManager * getInstance();
      Shader_m * getShaderFromFile(string filename);
-     Shader_m * getShaderFromSource(string file_name, string vertex_source, string fragment_source);
+     Shader_m * getShaderFromSource(string file_name, const GLchar*  vertex_source, const GLchar*  fragment_source);
 protected:
     ShaderManager();
     ~ShaderManager();

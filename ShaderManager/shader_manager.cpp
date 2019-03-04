@@ -1,4 +1,5 @@
 #include "shader_manager.hpp"
+#include "../Shader/ShadersSources/texture_shader_source.hpp"
 
 #include <SOIL.h>
 
@@ -31,7 +32,7 @@ Shader_m * ShaderManager::getShaderFromFile(string filename)
 
 }
 
-Shader_m * ShaderManager::getShaderFromSource(string file_name, string vertex_source, string fragment_source)
+Shader_m * ShaderManager::getShaderFromSource(string file_name, const GLchar* vertex_source, const GLchar* fragment_source)
 {
     Shader_m * shader = mapaShaderow[file_name];
 
@@ -45,7 +46,5 @@ Shader_m * ShaderManager::getShaderFromSource(string file_name, string vertex_so
         mapaShaderow[file_name] = shader;
         return shader;
     }
-
-
 }
 
