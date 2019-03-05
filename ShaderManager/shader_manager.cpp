@@ -38,7 +38,17 @@ Shader_m * ShaderManager::getShaderFromSource(string file_name, const GLchar* ve
 
     if(shader)
     {
-        return shader;
+        if(glIsProgram(shader->ID) == GL_TRUE)
+        {
+             return shader;
+        }
+        else
+        {
+            delete shader;
+            shader = new Shader_m(vertex_source, fragment_source, Shader_m::SOURCE);
+            mapaShaderow[file_name] = shader;
+            return shader;
+        }
     }
     else
     {
