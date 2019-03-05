@@ -1,28 +1,27 @@
 #include "Rectangle_Renderer.hpp"
+#include "../../system_log.hpp"
+#include "../Shader/ShadersSources/colour_shader_source.hpp"
+#include "../Shader/ShadersSources/texture_shader_source.hpp"
+#include "../ShaderManager/shader_manager.hpp"
 #include "../TextureManager/texture_manager.hpp"
 #include <iostream>
-#include "../../system_log.hpp"
-#include "../Shader/ShadersSources/texture_shader_source.hpp"
-#include "../Shader/ShadersSources/colour_shader_source.hpp"
-#include "../ShaderManager/shader_manager.hpp"
 
 using namespace std;
 
 static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
 
-
 static GLfloat rectangle_vertices[] = {
-    1.0f,  1.0f, 0.0f,      1.0f, 1.0f,  //TOP RIGHT VERTICES
-    1.0f, -1.0f, 0.0f,      1.0f, 0.0f,  //BOTTOM RIGHT VERTICES
-    -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,  //BOTTOM LEFT VERTICES
-    -1.0f, 1.0f, 0.0f,      0.0f, 1.0f  //TOP RIGHT
+    1.0f,  1.0f,  0.0f, 1.0f, 1.0f, // TOP RIGHT VERTICES
+    1.0f,  -1.0f, 0.0f, 1.0f, 0.0f, // BOTTOM RIGHT VERTICES
+    -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, // BOTTOM LEFT VERTICES
+    -1.0f, 1.0f,  0.0f, 0.0f, 1.0f  // TOP RIGHT
 };
 
 static GLuint prepareVBO(GLsizeiptr size)
 {
     GLuint vbo;
 
-    glGenBuffers(1,&vbo);
+    glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -30,23 +29,22 @@ static GLuint prepareVBO(GLsizeiptr size)
     return vbo;
 }
 
-void updateVBO(GLuint vbo, const GLfloat * data, GLsizeiptr size)
+void updateVBO(GLuint vbo, const void *data, GLsizeiptr size)
 {
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat width, GLfloat height, GLfloat z)
+void DE_initRectangle_7(DE_Rectangle *rectangle, GLuint *textureId, GLfloat width, GLfloat height, GLfloat z)
 {
     rectangle->texture_id = *textureId;
     rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
 
+    GLfloat width_2 = width / 2.0f;
+    GLfloat height_2 = height / 2.0f;
 
-    GLfloat width_2 = width/2.0f;
-    GLfloat height_2 = height/2.0f;
-
-    //TOP RIGHT VERTICES
+    // TOP RIGHT VERTICES
     rectangle_vertices[0] = width_2;
     rectangle_vertices[1] = height_2;
     rectangle_vertices[2] = z;
@@ -54,7 +52,7 @@ void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat w
     rectangle_vertices[3] = 1.0f;
     rectangle_vertices[4] = 1.0f;
 
-    //BOTTOM RIGHT VERTICES
+    // BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = width_2;
     rectangle_vertices[6] = -height_2;
     rectangle_vertices[7] = z;
@@ -62,7 +60,7 @@ void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat w
     rectangle_vertices[8] = 1.0f;
     rectangle_vertices[9] = 0.0f;
 
-    //BOTTOM LEFT VERTICES
+    // BOTTOM LEFT VERTICES
     rectangle_vertices[10] = -width_2;
     rectangle_vertices[11] = -height_2;
     rectangle_vertices[12] = z;
@@ -70,7 +68,7 @@ void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat w
     rectangle_vertices[13] = 0.0f;
     rectangle_vertices[14] = 0.0f;
 
-    //TOP RIGHT
+    // TOP RIGHT
     rectangle_vertices[15] = -width_2;
     rectangle_vertices[16] = height_2;
     rectangle_vertices[17] = z;
@@ -81,17 +79,16 @@ void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint  * textureId, GLfloat w
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
 
-void DE_initRectangle_5(DE_Rectangle * rectangle, const char * textureFilename, GLfloat width, GLfloat height, GLfloat z)
+void DE_initRectangle_5(DE_Rectangle *rectangle, const char *textureFilename, GLfloat width, GLfloat height, GLfloat z)
 {
 
     rectangle->texture_id = TextureManager::getInstance()->getTextureId(textureFilename);
     rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
 
+    GLfloat width_2 = width / 2.0f;
+    GLfloat height_2 = height / 2.0f;
 
-    GLfloat width_2 = width/2.0f;
-    GLfloat height_2 = height/2.0f;
-
-    //TOP RIGHT VERTICES
+    // TOP RIGHT VERTICES
     rectangle_vertices[0] = width_2;
     rectangle_vertices[1] = height_2;
     rectangle_vertices[2] = z;
@@ -99,7 +96,7 @@ void DE_initRectangle_5(DE_Rectangle * rectangle, const char * textureFilename, 
     rectangle_vertices[3] = 1.0f;
     rectangle_vertices[4] = 1.0f;
 
-    //BOTTOM RIGHT VERTICES
+    // BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = width_2;
     rectangle_vertices[6] = -height_2;
     rectangle_vertices[7] = z;
@@ -107,7 +104,7 @@ void DE_initRectangle_5(DE_Rectangle * rectangle, const char * textureFilename, 
     rectangle_vertices[8] = 1.0f;
     rectangle_vertices[9] = 0.0f;
 
-    //BOTTOM LEFT VERTICES
+    // BOTTOM LEFT VERTICES
     rectangle_vertices[10] = -width_2;
     rectangle_vertices[11] = -height_2;
     rectangle_vertices[12] = z;
@@ -126,14 +123,12 @@ void DE_initRectangle_5(DE_Rectangle * rectangle, const char * textureFilename, 
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
 
-void DE_initRectangle_6(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * verticles, glm::vec2 * texCoords)
+void DE_initRectangle_6(DE_Rectangle *rectangle, GLuint textureId, glm::vec3 *verticles, glm::vec2 *texCoords)
 {
-
     rectangle->texture_id = textureId;
     rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
 
-
-    //TOP RIGHT VERTICES
+    // TOP RIGHT VERTICES
     rectangle_vertices[0] = verticles[0].x;
     rectangle_vertices[1] = verticles[0].y;
     rectangle_vertices[2] = verticles[0].z;
@@ -141,7 +136,7 @@ void DE_initRectangle_6(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * 
     rectangle_vertices[3] = texCoords[0].x;
     rectangle_vertices[4] = texCoords[0].y;
 
-    //BOTTOM RIGHT VERTICES
+    // BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = verticles[1].x;
     rectangle_vertices[6] = verticles[1].y;
     rectangle_vertices[7] = verticles[1].z;
@@ -149,7 +144,7 @@ void DE_initRectangle_6(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * 
     rectangle_vertices[8] = texCoords[1].x;
     rectangle_vertices[9] = texCoords[1].y;
 
-    //BOTTOM LEFT VERTICES
+    // BOTTOM LEFT VERTICES
     rectangle_vertices[10] = verticles[2].x;
     rectangle_vertices[11] = verticles[2].y;
     rectangle_vertices[12] = verticles[2].z;
@@ -166,61 +161,31 @@ void DE_initRectangle_6(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * 
     rectangle_vertices[19] = texCoords[3].y;
 
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
-
 }
 
-void DE_initRectangle_8(DE_Rectangle * rectangle, glm::vec3 * verticles)
+void DE_initRectangle_8(DE_Rectangle *rectangle, vector<glm::vec3> &verticles)
 {
     rectangle->texture_id = 0;
-    rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
+    rectangle->vbo_id = prepareVBO(verticles.size() * sizeof(glm::vec3));
 
-
-    //TOP RIGHT VERTICES
-    rectangle_vertices[0] = verticles[0].x;
-    rectangle_vertices[1] = verticles[0].y;
-    rectangle_vertices[2] = verticles[0].z;
-
-    rectangle_vertices[3] = 0;
-    rectangle_vertices[4] = 0;
-
-    //BOTTOM RIGHT VERTICES
-    rectangle_vertices[5] = verticles[1].x;
-    rectangle_vertices[6] = verticles[1].y;
-    rectangle_vertices[7] = verticles[1].z;
-
-    rectangle_vertices[8] = 0;
-    rectangle_vertices[9] = 0;
-
-    //BOTTOM LEFT VERTICES
-    rectangle_vertices[10] = verticles[2].x;
-    rectangle_vertices[11] = verticles[2].y;
-    rectangle_vertices[12] = verticles[2].z;
-
-    rectangle_vertices[13] = 0;
-    rectangle_vertices[14] = 0;
-
-    //
-    rectangle_vertices[15] = verticles[3].x;
-    rectangle_vertices[16] = verticles[3].y;
-    rectangle_vertices[17] = verticles[3].z;
-
-    rectangle_vertices[18] = 0;
-    rectangle_vertices[19] = 0;
-
-    updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
+    updateVBO(rectangle->vbo_id, verticles.data(), verticles.size() * sizeof(glm::vec3));
 }
 
-void DE_initRectangle_3(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm)
+void DE_setVerticles(DE_Rectangle * rectangle, vector<glm::vec3> & verticles)
+{
+    updateVBO(rectangle->vbo_id, verticles.data(), verticles.size() * sizeof(glm::vec3));
+}
+
+void DE_initRectangle_3(DE_Rectangle *rectangle, GLuint textureId, glm::vec2 dimm)
 {
 
     rectangle->texture_id = textureId;
     rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
 
+    GLfloat width_2 = dimm.x / 2.0f;
+    GLfloat height_2 = dimm.y / 2.0f;
 
-    GLfloat width_2 = dimm.x/2.0f;
-    GLfloat height_2 = dimm.y/2.0f;
-
-    //TOP RIGHT VERTICES
+    // TOP RIGHT VERTICES
     rectangle_vertices[0] = width_2;
     rectangle_vertices[1] = height_2;
     rectangle_vertices[2] = 0;
@@ -228,7 +193,7 @@ void DE_initRectangle_3(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 di
     rectangle_vertices[3] = 1.0f;
     rectangle_vertices[4] = 1.0f;
 
-    //BOTTOM RIGHT VERTICES
+    // BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = width_2;
     rectangle_vertices[6] = -height_2;
     rectangle_vertices[7] = 0;
@@ -236,7 +201,7 @@ void DE_initRectangle_3(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 di
     rectangle_vertices[8] = 1.0f;
     rectangle_vertices[9] = 0.0f;
 
-    //BOTTOM LEFT VERTICES
+    // BOTTOM LEFT VERTICES
     rectangle_vertices[10] = -width_2;
     rectangle_vertices[11] = -height_2;
     rectangle_vertices[12] = 0;
@@ -254,17 +219,14 @@ void DE_initRectangle_3(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 di
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
 
-
-
-
-void DE_setDimm(DE_Rectangle * rectangle, glm::vec2 dimm)
+void DE_setDimm(DE_Rectangle *rectangle, glm::vec2 dimm)
 {
     rectangle->dimm = dimm;
 
-    GLfloat width_2 = dimm.x/2.0f;
-    GLfloat height_2 = dimm.y/2.0f;
+    GLfloat width_2 = dimm.x / 2.0f;
+    GLfloat height_2 = dimm.y / 2.0f;
 
-    //TOP RIGHT VERTICES
+    // TOP RIGHT VERTICES
     rectangle_vertices[0] = width_2;
     rectangle_vertices[1] = height_2;
     rectangle_vertices[2] = 0;
@@ -272,7 +234,7 @@ void DE_setDimm(DE_Rectangle * rectangle, glm::vec2 dimm)
     rectangle_vertices[3] = 1.0f;
     rectangle_vertices[4] = 1.0f;
 
-    //BOTTOM RIGHT VERTICES
+    // BOTTOM RIGHT VERTICES
     rectangle_vertices[5] = width_2;
     rectangle_vertices[6] = -height_2;
     rectangle_vertices[7] = 0;
@@ -280,7 +242,7 @@ void DE_setDimm(DE_Rectangle * rectangle, glm::vec2 dimm)
     rectangle_vertices[8] = 1.0f;
     rectangle_vertices[9] = 0.0f;
 
-    //BOTTOM LEFT VERTICES
+    // BOTTOM LEFT VERTICES
     rectangle_vertices[10] = -width_2;
     rectangle_vertices[11] = -height_2;
     rectangle_vertices[12] = 0;
@@ -298,9 +260,9 @@ void DE_setDimm(DE_Rectangle * rectangle, glm::vec2 dimm)
     updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
 }
 
-void DE_setShader(DE_Rectangle * rectangle, Shader_m * shader)
+void DE_setShader(DE_Rectangle *rectangle, Shader_m *shader)
 {
-    if(shader)
+    if (shader)
     {
         rectangle->shader = shader;
 
@@ -313,18 +275,17 @@ void DE_setShader(DE_Rectangle * rectangle, Shader_m * shader)
     }
 }
 
-void DE_setModel(DE_Rectangle * rectancle, glm::mat4 model)
+void DE_setModel(DE_Rectangle *rectancle, glm::mat4 model)
 {
     rectancle->model = model;
 }
 
+void DE_drawRectangle(DE_Rectangle *rectangle, GLenum mode)
+{
 
-
-void DE_drawRectangle(DE_Rectangle * rectangle, GLenum mode){
-
-    if(rectangle->texture_id != 0)
+    if (rectangle->texture_id != 0)
     {
-        if(rectangle->shader)
+        if (rectangle->shader)
         {
             rectangle->shader->use();
             rectangle->shader->setMat4(rectangle->projectionMatrixLocation, rectangle->projection);
@@ -338,23 +299,40 @@ void DE_drawRectangle(DE_Rectangle * rectangle, GLenum mode){
         glBindTexture(GL_TEXTURE_2D, rectangle->texture_id);
         glUniform1i(rectangle->textureUnitLocation, texture_unit);
 
-
         glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
         {
-            glVertexAttribPointer(rectangle->position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+            glVertexAttribPointer(rectangle->position_location, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)0);
             glEnableVertexAttribArray(rectangle->position_location);
 
-            glVertexAttribPointer(rectangle->texCoord_attrib_location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+            glVertexAttribPointer(rectangle->texCoord_attrib_location, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid *)(3 * sizeof(GLfloat)));
             glEnableVertexAttribArray(rectangle->texCoord_attrib_location);
 
             glDrawArrays(mode, 0, 4);
         }
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+    else
+    {
+        if (rectangle->shader)
+        {
+            rectangle->shader->use();
+            rectangle->shader->setMat4(rectangle->projectionMatrixLocation, rectangle->projection);
+            rectangle->shader->setMat4(rectangle->viewMatrixLocation, rectangle->view);
+            rectangle->shader->setMat4(rectangle->modelMatrixLocation, rectangle->model);
+        }
 
+        glBindBuffer(GL_ARRAY_BUFFER, rectangle->vbo_id);
+        {
+            glVertexAttribPointer(rectangle->position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid *)0);
+            glEnableVertexAttribArray(rectangle->position_location);
+
+            glDrawArrays(mode, 0, 4);
+        }
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
 
-void DE_deleteRectangle(DE_Rectangle * rectangle){
+void DE_deleteRectangle(DE_Rectangle *rectangle)
+{
     glDeleteBuffers(1, &(rectangle->vbo_id));
 }
-
