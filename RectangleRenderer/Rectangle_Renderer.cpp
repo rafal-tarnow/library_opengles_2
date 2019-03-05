@@ -169,6 +169,47 @@ void DE_initRectangle_6(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * 
 
 }
 
+void DE_initRectangle_8(DE_Rectangle * rectangle, glm::vec3 * verticles)
+{
+    rectangle->texture_id = 0;
+    rectangle->vbo_id = prepareVBO(sizeof(rectangle_vertices));
+
+
+    //TOP RIGHT VERTICES
+    rectangle_vertices[0] = verticles[0].x;
+    rectangle_vertices[1] = verticles[0].y;
+    rectangle_vertices[2] = verticles[0].z;
+
+    rectangle_vertices[3] = 0;
+    rectangle_vertices[4] = 0;
+
+    //BOTTOM RIGHT VERTICES
+    rectangle_vertices[5] = verticles[1].x;
+    rectangle_vertices[6] = verticles[1].y;
+    rectangle_vertices[7] = verticles[1].z;
+
+    rectangle_vertices[8] = 0;
+    rectangle_vertices[9] = 0;
+
+    //BOTTOM LEFT VERTICES
+    rectangle_vertices[10] = verticles[2].x;
+    rectangle_vertices[11] = verticles[2].y;
+    rectangle_vertices[12] = verticles[2].z;
+
+    rectangle_vertices[13] = 0;
+    rectangle_vertices[14] = 0;
+
+    //
+    rectangle_vertices[15] = verticles[3].x;
+    rectangle_vertices[16] = verticles[3].y;
+    rectangle_vertices[17] = verticles[3].z;
+
+    rectangle_vertices[18] = 0;
+    rectangle_vertices[19] = 0;
+
+    updateVBO(rectangle->vbo_id, rectangle_vertices, sizeof(rectangle_vertices));
+}
+
 void DE_initRectangle_3(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm)
 {
 

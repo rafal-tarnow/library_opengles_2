@@ -31,6 +31,7 @@ typedef struct{
 void DE_initRectangle_3(DE_Rectangle * rectangle, GLuint textureId, glm::vec2 dimm);
 void DE_initRectangle_5(DE_Rectangle * rectangle, const char * textureFilename, GLfloat width, GLfloat height, GLfloat z = 0.0f);
 void DE_initRectangle_6(DE_Rectangle * rectangle, GLuint textureId, glm::vec3 * verticles, glm::vec2 * texCoords);
+void DE_initRectangle_8(DE_Rectangle * rectangle, glm::vec3 * verticles);
 void DE_initRectangle_7(DE_Rectangle * rectangle, GLuint * textureId, GLfloat width, GLfloat height, GLfloat z = 0.0f);
 
 
