@@ -26,5 +26,5 @@ static const GLchar* colour_fragment_shader_source =
         "uniform vec4 colour;                                       \n"
         "                                                           \n"
         "void main() {                                              \n"
-        "   gl_FragColor = vec4(1.0,0.0,0.0,1.0);                                  \n"
+        "   gl_FragColor = colour;                                  \n"
         "}                                                          \n";

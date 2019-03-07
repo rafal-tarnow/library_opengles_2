@@ -237,9 +237,11 @@ void PR_draw(Primitive * primitive, GLfloat width)
                 glVertexAttribPointer(solid_position_location, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
                 
                 
-                glDrawArrays(primitive->mode, 0, primitive->numberOfVerticles);
+
             }
             glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glDrawArrays(primitive->mode, 0, primitive->numberOfVerticles);
+
         }
         glUseProgram(0);
     }
