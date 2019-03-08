@@ -38,9 +38,9 @@ public:
         double v_coord_bottom;
     }GlyphData;
 
+    FT_Pos scaled_line_spacing_1_64px;
     unsigned int atlas_width;
     unsigned int atlas_rows;
-    GLuint rectangle_AtlasTextureId;
     GLuint square_AtlasTextureId;
 
     std::map<char, GlyphData> glyph_map;
@@ -99,6 +99,7 @@ private:
             vbo = 0;
         }
         string previous_string;
+        vector<GLfloat> linesLenght;
         GLfloat textLenght;
         GLuint vbo;
     private:
