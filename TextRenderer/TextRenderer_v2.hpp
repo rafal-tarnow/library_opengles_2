@@ -22,9 +22,10 @@ const int MAX_STRING_LENGHT = 5000;
 using namespace std;
 
 
+
+
 class Atlas_gl{
 public:
-
     typedef struct{
         unsigned int glyph_bitmap_width; //converted
         FT_Int glyph_bitmap_left;   //converted
@@ -37,6 +38,17 @@ public:
         double v_coord_top;
         double v_coord_bottom;
     }GlyphData;
+
+public:
+    Atlas_gl()
+    {
+
+    }
+    ~Atlas_gl()
+    {
+        if(glIsTexture(square_AtlasTextureId) == GL_TRUE)
+            glDeleteTextures(1,&(this->square_AtlasTextureId));
+    }
 
     FT_Pos scaled_line_spacing_1_64px;
     unsigned int atlas_width;

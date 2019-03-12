@@ -28,6 +28,7 @@ static const GLchar* texture_fragment_shader_source =
         "                                                           \n"
         "varying vec2 v_TexCoordinate;                              \n"
         "                                                           \n"
-        "void main() {                                              \n"
+        "void main()                                                \n"
+        "{                                                          \n"
         "   gl_FragColor = texture2D(textureUnit,v_TexCoordinate);  \n"
         "}                                                          \n";

@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include <system_log.hpp>
+#include "../Shader/ShadersSources/text_shader_source.hpp"
 
 #include "stb_rect_pack.h"
 
@@ -15,32 +16,7 @@
 
 using namespace std;
 
-static const GLchar *vertex_shader_source = "#version 100                               \n"
-                                            "//TextRendered_v2 vertex shader            \n"
-                                            "attribute vec3 position;                   \n"
-                                            "attribute vec2 texCoord;                   \n"
-                                            "varying vec2 v_TexCoordinate;              \n"
-                                            "                                           \n"
-                                            "uniform mat4 model;                      \n"
-                                            "uniform mat4 view;                       \n"
-                                            "uniform mat4 projection;                   \n"
-                                            "                                           \n"
-                                            "void main() {                              \n"
-                                            "   gl_Position = projection * view * model * vec4(position, 1.0);  \n"
-                                            "   v_TexCoordinate = texCoord;             \n"
-                                            "}                                          \n";
 
-static const GLchar *fragment_shader_source = "#version 100                               \n"
-                                              "//TextRenderer_v2 fragmet shader           \n"
-                                              "precision highp float;                     \n"
-                                              "                                           \n"
-                                              "varying vec2 v_TexCoordinate;              \n"
-                                              "uniform sampler2D textureMap;             \n"
-                                              "uniform vec4 textColor;                    \n"
-                                              "void main() {                              \n"
-                                              "       vec4 sampled = vec4(1.0, 1.0, 1.0, texture2D(textureMap,v_TexCoordinate).a);                \n"
-                                              "       gl_FragColor = textColor * sampled;                                                         \n"
-                                              "}                                                                                                  \n";
 
 GLuint TextRenderer_v2::shader_program = 0;
 GLint TextRenderer_v2::position_location;
@@ -52,7 +28,7 @@ GLint TextRenderer_v2::viewMatrixLocation;
 GLint TextRenderer_v2::modelMatrixLocation;
 map<string, map<GLuint, Atlas_gl *>> TextRenderer_v2::mapaAtlasow;
 
-static GLint compileShaders(const char *vertex_shader_source, const char *fragment_shader_source);
+static GLint compileShaders(const char *txt_vertex_shader_src, const char *txt_fragment_shader_src);
 static void drawGlyphToConsole(FT_Face &face);
 
 TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewport_height_in_pixels, glm::vec4 txtColor)
@@ -64,9 +40,9 @@ TextRenderer_v2::TextRenderer_v2(GLfloat viewport_width_in_pixels, GLfloat viewp
 
     mProjection = glm::ortho(static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.z), static_cast<GLfloat>(0), static_cast<GLfloat>(viewport.w));
 
-    if (shader_program == 0)
+    if (glIsProgram(shader_program) == GL_FALSE)
     {
-        shader_program = compileShaders(vertex_shader_source, fragment_shader_source);
+        shader_program = compileShaders(txt_vertex_shader_src, txt_fragment_shader_src);
 
         position_location = glGetAttribLocation(shader_program, "position");
         texCoord_attrib_location = glGetAttribLocation(shader_program, "texCoord");
@@ -119,13 +95,24 @@ void TextRenderer_v2::onVievportResize(GLfloat viewport_width_in_pixels, GLfloat
 
 void TextRenderer_v2::Load(std::string fontName, std::string fontFilePath, GLuint fontSize)
 {
-    // jeżeli atlas juz istnieje
-    if (mapaAtlasow.count(fontName) == 1)
+
+    if (mapaAtlasow.count(fontName) == 1) //jeżeli czcionka juz istnieje
     {
-        if (mapaAtlasow.at(fontName).count(fontSize) == 1)
+        if (mapaAtlasow.at(fontName).count(fontSize) == 1) // jeżeli czcionka o danym rozmiarze już istnieje
         {
             current_atlas = mapaAtlasow.at(fontName).at(fontSize);
-            return;
+
+            if(current_atlas) //check is current_atlas is not nullptr
+            {
+                if(glIsTexture(current_atlas->square_AtlasTextureId) == GL_TRUE) //check if context was lost and texture is invalid
+                {
+                    return;
+                }
+                else
+                {
+                    delete current_atlas;
+                }
+            }
         }
     }
 
@@ -521,7 +508,6 @@ void TextRenderer_v2::RenderText(uint8_t instance, std::string text, glm::mat4 m
 
             Atlas_gl::GlyphData atlasCharData_tmp;
 
-
             for (c = text.begin(); c != text.end(); c++)
             {
                 if (*c == '\n')
@@ -530,7 +516,7 @@ void TextRenderer_v2::RenderText(uint8_t instance, std::string text, glm::mat4 m
                     // exit(EXIT_FAILURE);
                     pen_x_int = 0;
                     pen_x_float = 0.0f;
-                    pen_y_float -= ((GLfloat)current_atlas->scaled_line_spacing_1_64px)/64.0f;
+                    pen_y_float -= ((GLfloat)current_atlas->scaled_line_spacing_1_64px) / 64.0f;
                     textInstance->linesLenght.push_back(x_right);
                     x_left = 0;
                     x_right = 0;
@@ -543,7 +529,6 @@ void TextRenderer_v2::RenderText(uint8_t instance, std::string text, glm::mat4 m
                 x_right = x_left + atlasCharData_tmp.glyph_bitmap_width;
                 y_top = pen_y_float + atlasCharData_tmp.glyph_bitmap_top;
                 y_bottom = y_top - atlasCharData_tmp.glyph_bitmap_rows;
-
 
                 //                if(doOptymalization_1(x + x_left,y + y_top,y + y_bottom)){
                 //                    break;
@@ -586,19 +571,18 @@ void TextRenderer_v2::RenderText(uint8_t instance, std::string text, glm::mat4 m
             textInstance->textLenght = x_right;
             textInstance->linesLenght.push_back(x_right);
 
-            //ALIGN TEXT
+            // ALIGN TEXT
             if (origin == TEXT_RIGHT)
             {
-
             }
             else if ((origin == TEXT_CENTER) || (origin == TEXT_LEFT))
             {
                 int line_index = 0;
                 int lineOffset = 0;
 
-                if(origin == TEXT_CENTER)
-                    lineOffset = (textInstance->linesLenght.at(line_index))/2.0f;
-                else if(origin == TEXT_LEFT)
+                if (origin == TEXT_CENTER)
+                    lineOffset = (textInstance->linesLenght.at(line_index)) / 2.0f;
+                else if (origin == TEXT_LEFT)
                     lineOffset = textInstance->linesLenght.at(line_index);
 
                 index = 0;
@@ -608,9 +592,9 @@ void TextRenderer_v2::RenderText(uint8_t instance, std::string text, glm::mat4 m
                     if (*c == '\n')
                     {
                         line_index++;
-                        if(origin == TEXT_CENTER)
-                            lineOffset = (textInstance->linesLenght.at(line_index))/2.0f;
-                        else if(origin == TEXT_LEFT)
+                        if (origin == TEXT_CENTER)
+                            lineOffset = (textInstance->linesLenght.at(line_index)) / 2.0f;
+                        else if (origin == TEXT_LEFT)
                             lineOffset = textInstance->linesLenght.at(line_index);
                         continue;
                     }
@@ -619,23 +603,21 @@ void TextRenderer_v2::RenderText(uint8_t instance, std::string text, glm::mat4 m
                     verticles_table[0 + index] = verticles_table[0 + index] - lineOffset; // verticle x pos
 
                     // VERTICLE LEFT BOTTOM 1
-                    verticles_table[5 + index] = verticles_table[5 + index] - lineOffset;   // verticle x pos
+                    verticles_table[5 + index] = verticles_table[5 + index] - lineOffset; // verticle x pos
 
                     // VERTICLE RIGH TOP 2
                     verticles_table[10 + index] = verticles_table[10 + index] - lineOffset; // verticle x pos
 
                     // VERTICLE RIGHT BOTTOM 3
-                    verticles_table[15 + index] = verticles_table[15 + index] - lineOffset;  // verticle x pos
+                    verticles_table[15 + index] = verticles_table[15 + index] - lineOffset; // verticle x pos
 
                     index += 20;
                 }
             }
 
-            //UPDATE BUFFER
+            // UPDATE BUFFER
             glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verticles_table), verticles_table);
-
         }
-
 
         glUniformMatrix4fv(projectionMatrixLocation, 1, GL_FALSE, glm::value_ptr(mProjection));
         glUniformMatrix4fv(viewMatrixLocation, 1, GL_FALSE, glm::value_ptr(mView));
