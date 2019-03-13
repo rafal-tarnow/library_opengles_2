@@ -22,6 +22,10 @@ public:
     }Type;
 
     GLuint ID;
+    GLint projectionLocation = 0;
+    GLint viewLocation = 0;
+    GLint modelLocation = 0;
+    GLint colourLocation = 0;
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
     Shader_m(const string &vertex, const string &fragment, Type type)
@@ -31,6 +35,7 @@ public:
 
     Shader_m(const char* vertex, const char* fragment, Type type)
     {
+        bool compileStatus = false;
         if(type == PATH)
         {
 
@@ -67,12 +72,21 @@ public:
             const char* vShaderCode = vertexCode.c_str();
             const char * fShaderCode = fragmentCode.c_str();
 
-            compileShader(vShaderCode, fShaderCode);
+            compileStatus = compileShader(vShaderCode, fShaderCode);
 
         }
         else if(type == SOURCE)
         {
-            compileShader(vertex, fragment);
+            compileStatus = compileShader(vertex, fragment);
+        }
+
+        if(compileStatus)
+        {
+            this->use();
+            projectionLocation = this->getUniformLocation("projection");
+            viewLocation = this->getUniformLocation("view");
+            modelLocation = this->getUniformLocation("model");
+            colourLocation = this->getUniformLocation("colour");
         }
     }
     // activate the shader
@@ -163,7 +177,7 @@ public:
 
 private:
 
-    void compileShader(const char* vShaderCode, const char * fShaderCode)
+    bool compileShader(const char* vShaderCode, const char * fShaderCode)
     {
         // 2. compile shaders
         unsigned int vertex, fragment;
@@ -173,26 +187,38 @@ private:
         vertex = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertex, 1, &vShaderCode, NULL);
         glCompileShader(vertex);
-        checkCompileErrors(vertex, "VERTEX");
+        if(!checkCompileErrors(vertex, "VERTEX"))
+            return false;
+
         // fragment Shader
         fragment = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fragment, 1, &fShaderCode, NULL);
         glCompileShader(fragment);
-        checkCompileErrors(fragment, "FRAGMENT");
+        if(!checkCompileErrors(fragment, "FRAGMENT"))
+        {
+            glDeleteShader(vertex);
+            return false;
+        }
         // shader Program
         ID = glCreateProgram();
         glAttachShader(ID, vertex);
         glAttachShader(ID, fragment);
         glLinkProgram(ID);
-        checkCompileErrors(ID, "PROGRAM");
+        if(!checkCompileErrors(ID, "PROGRAM"))
+        {
+            glDeleteShader(vertex);
+            glDeleteShader(fragment);
+            return false;
+        }
         // delete the shaders as they're linked into our program now and no longer necessery
         glDeleteShader(vertex);
         glDeleteShader(fragment);
+        return true;
     }
 
     // utility function for checking shader compilation/linking errors.
     // ------------------------------------------------------------------------
-    void checkCompileErrors(GLuint shader, std::string type)
+    bool checkCompileErrors(GLuint shader, std::string type)
     {
         GLint success;
         GLchar infoLog[1024];
@@ -203,7 +229,7 @@ private:
             {
                 glGetShaderInfoLog(shader, 1024, NULL, infoLog);
                 std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-                exit(EXIT_FAILURE);
+                return false;
             }
         }
         else
@@ -213,8 +239,9 @@ private:
             {
                 glGetProgramInfoLog(shader, 1024, NULL, infoLog);
                 std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
-                exit(EXIT_FAILURE);
+                return false;
             }
         }
+        return true;
     }
 };

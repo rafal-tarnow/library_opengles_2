@@ -32,9 +32,9 @@ Shader_m * ShaderManager::getShaderFromFile(string filename)
 
 }
 
-Shader_m * ShaderManager::getShaderFromSource(string file_name, const GLchar* vertex_source, const GLchar* fragment_source)
+Shader_m * ShaderManager::getShaderFromSource(string hash_file_name, const GLchar* vertex_source, const GLchar* fragment_source)
 {
-    Shader_m * shader = mapaShaderow[file_name];
+    Shader_m * shader = mapaShaderow[hash_file_name];
 
     if(shader)
     {
@@ -46,14 +46,14 @@ Shader_m * ShaderManager::getShaderFromSource(string file_name, const GLchar* ve
         {
             delete shader;
             shader = new Shader_m(vertex_source, fragment_source, Shader_m::SOURCE);
-            mapaShaderow[file_name] = shader;
+            mapaShaderow[hash_file_name] = shader;
             return shader;
         }
     }
     else
     {
         shader = new Shader_m(vertex_source, fragment_source, Shader_m::SOURCE);
-        mapaShaderow[file_name] = shader;
+        mapaShaderow[hash_file_name] = shader;
         return shader;
     }
 }
